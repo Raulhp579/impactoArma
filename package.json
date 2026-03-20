@@ -17,6 +17,8 @@
         "vite": "^8.0.0"
     },
     "dependencies": {
+        "@fontsource/inter": "^5.2.8",
+        "datatables.net-dt": "^2.3.7",
         "leaflet": "^1.9.4"
     }
 }

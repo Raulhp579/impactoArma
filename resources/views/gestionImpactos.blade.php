@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impacto Arma - Mapa</title>
-
+    <title>Impacto Arma - Gestionar Impactos</title>
     @vite('resources/css/app.css')
     <style>
-
         :root {
             --bg-dark: #0f1115;
-            --surface: #181a20;
-            --surface-glass: rgba(24, 26, 32, 0.85);
+            --surface: rgba(30, 33, 40, 0.75);
+            --surface-solid: #181a20;
+            --surface-hover: rgba(45, 50, 60, 0.85);
             --primary: #3b82f6;
             --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
-            width: 100%;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
+            height: 100vh;
             overflow: hidden;
         }
 
@@ -55,10 +55,21 @@
             width: 100vw;
         }
 
+        /* SVG Defaults */
+        svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 2;
+            stroke: currentColor;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
         /* LEFT SIDEBAR */
         .sidebar-left {
             width: 72px;
-            background-color: var(--surface);
+            background-color: var(--surface-solid);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -144,68 +155,234 @@
             transform: translateX(0);
         }
 
-        /* Tooltip right-sided */
-        .toolbar-right .icon-btn::after {
-            left: auto;
-            right: calc(100% + 10px);
-            transform: translateX(10px);
-        }
-        .toolbar-right .icon-btn:hover::after {
-            transform: translateX(0);
-        }
-
-        /* MAIN CONTENT (MAP AREA) */
+        /* MAIN CONTENT AREA */
         .main-content {
             flex: 1;
             position: relative;
-            background-color: #0b1120;
+            background-image: url('{{ asset("img/fondo.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Ocultar UI de Leaflet para usar nuestra propia interfaz premium */
-        .leaflet-control-zoom {
-            display: none !important;
-        }
-        .leaflet-bottom.leaflet-right {
-            display: none !important; /* Oculta logo para limpieza visual del sketch */
-        }
-
-        /* RIGHT TOOLBAR */
-        .toolbar-right {
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            background: var(--surface-glass);
+        /* Contenedor Principal Glassmorphism */
+        .container {
+            background: var(--surface);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 0.5rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
         }
 
-        .toolbar-right .icon-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+        /* Header del contenedor */
+        .header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
         }
 
-        .toolbar-divider {
-            height: 1px;
-            background: var(--border-color);
-            margin: 0.25rem 0.5rem;
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+            padding: 0.4rem 0.8rem;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .btn-edit {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.3);
+            padding: 0.4rem 0.8rem;
+        }
+        
+        .btn-edit:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Área de la tabla */
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 2rem 2rem 2rem; /* Removido padding-top */
+        }
+
+        /* OVERRIDES DATATABLES DARK GLASSMORPHISM */
+        div.dt-container {
+            color: var(--text-main) !important;
+            font-family: inherit;
+        }
+
+        div.dt-container .dt-search input, 
+        div.dt-container .dt-length select {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border: 1px solid var(--border-color) !important;
+            color: white !important;
+            border-radius: 6px !important;
+            padding: 0.4rem 0.8rem !important;
+            outline: none;
+        }
+        div.dt-container .dt-search input:focus, 
+        div.dt-container .dt-length select:focus {
+            border-color: var(--primary) !important;
+        }
+
+        div.dt-container .dt-info {
+            color: var(--text-muted) !important;
+        }
+
+        /* ------- FUERZA BRUTA DATATABLES PAGINATION ------- */
+        body div.dt-container .dt-paging *, 
+        body div.dt-container .dt-paging button, 
+        body div.dt-container .dt-paging a,
+        div.dt-container .dt-paging .dt-paging-button {
+            color: white !important;
+            background: transparent !important;
+            border: none !important;
+            padding: 0.4rem 0.8rem !important;
+            text-decoration: none !important;
+        }
+
+        body div.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.current),
+        body div.dt-container .dt-paging button:hover:not(.disabled):not(.current) {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: white !important;
+            border-radius: 6px !important;
+        }
+
+        body div.dt-container .dt-paging .dt-paging-button.current,
+        body div.dt-container .dt-paging button.current {
+            background: var(--primary) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+        }
+
+        body div.dt-container .dt-paging .dt-paging-button.disabled,
+        body div.dt-container .dt-paging button.disabled,
+        body div.dt-container .dt-paging button[disabled],
+        div.dt-container .dt-paging .dt-paging-button.disabled:hover {
+            color: rgba(255, 255, 255, 0.3) !important;
+            background: transparent !important;
+            cursor: default !important;
+            opacity: 0.6 !important;
+        }
+        
+        table.dataTable {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            text-align: left;
+            margin-top: 0 !important; /* Quitar margen superior */
+            margin-bottom: 1rem !important;
+        }
+
+        table.dataTable thead th, table.dataTable thead td {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color) !important;
+            
+            /* Cabecera Estática (Sticky) */
+            position: sticky !important;
+            top: 0 !important; /* Ajustado a 0 sin padding superior */
+            background: rgba(30, 33, 40, 0.95) !important;
+            backdrop-filter: blur(8px) !important;
+            z-index: 10 !important;
+        }
+
+        table.dataTable tbody td {
+            padding: 1.2rem 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            font-size: 0.95rem;
+        }
+
+        table.dataTable tbody tr {
+            background: transparent !important;
+        }
+
+        table.dataTable tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
+        
+        .td-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
         /* ADD FAB (Floating Action Button) */
         .fab-add {
-            position: absolute;
+            position: fixed; /* Fixed para vistas de tabla */
             bottom: 2.5rem;
             right: 2.5rem;
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--primary), #60a5fa);
             color: white;
@@ -216,7 +393,7 @@
             cursor: pointer;
             box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 10;
+            z-index: 100;
         }
 
         .fab-add:hover {
@@ -229,19 +406,9 @@
         }
 
         .fab-add svg {
-            width: 32px;
-            height: 32px;
-        }
-
-        /* SVG Defaults */
-        svg {
-            width: 24px;
-            height: 24px;
-            stroke-width: 2;
-            stroke: currentColor;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            width: 28px;
+            height: 28px;
+            stroke-width: 2.5;
         }
 
         /* MODAL */
@@ -250,7 +417,7 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
-            z-index: 100;
+            z-index: 500;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -266,8 +433,8 @@
             border: 1px solid var(--border-color);
             border-radius: 16px;
             width: 100%;
-            max-width: 560px; /* Modal más ancho para que respiren las columnas */
-            padding: 2.5rem;
+            max-width: 500px;
+            padding: 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             transform: translateY(0) scale(1);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -283,22 +450,17 @@
         }
         .modal-header h2 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: var(--text-main);
         }
         .btn-close {
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 2rem;
+            font-size: 1.8rem;
             cursor: pointer;
             line-height: 1;
         }
-        .btn-close:hover {
-            color: white;
-        }
-        
-        /* TABS */
         .modal-tabs {
             display: flex;
             background: rgba(0,0,0,0.3);
@@ -320,14 +482,11 @@
         .tab-btn.active {
             background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
-
-        /* FORMS */
         .custom-form {
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1rem;
         }
         .custom-form.hidden-form {
             display: none;
@@ -336,203 +495,58 @@
             display: flex;
             gap: 1rem;
         }
-        .form-row .form-group {
-            flex: 1;
-        }
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            flex: 1;
         }
         .form-group label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             color: var(--text-muted);
-            margin-bottom: 0.25rem;
-            display: block;
         }
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group input[type="datetime-local"],
-        .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border-color);
             color: white;
-            padding: 0.85rem;
+            padding: 0.75rem;
             border-radius: 8px;
             font-family: inherit;
             outline: none;
-            width: 100%;
-            box-sizing: border-box;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .form-group select {
-            background-color: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 0.85rem;
-            padding-right: 2.5rem; /* Espacio extra para la flecha custom */
-            border-radius: 8px;
-            font-family: inherit;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-            transition: border-color 0.2s, background 0.2s;
-            cursor: pointer;
-            
-            /* Flecha customizada SVG y ocultación nativa */
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.85rem center;
-            background-size: 1.2rem;
-
-            /* Truncamiento inteligente con Puntos Suspensivos */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .form-group select:focus {
-            border-color: var(--primary);
-            background-color: rgba(255, 255, 255, 0.09);
         }
         .form-group select option {
-            background: #1f2227; /* Oscuro sólido sin transparencia para que no haya bugs en windows */
+            background: #1a1a1a;
             color: white;
-            padding: 0.85rem;
-            font-size: 0.95rem;
-        }
-        /* Para esconder las flechas nativas en type=number si es necesario */
-        .form-group input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none; margin: 0;
-        }
-        .form-group input[type="text"]:focus,
-        .form-group input[type="number"]:focus,
-        .form-group input[type="datetime-local"]:focus,
-        .form-group textarea:focus {
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.09);
         }
         .checkbox-group {
             flex-direction: row;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
+        }
+        .checkbox-group input {
+            width: 16px; height: 16px;
+        }
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
             margin-top: 0.5rem;
         }
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-            margin: 0;
-            padding: 0;
-        }
-        .checkbox-group label {
-            margin-bottom: 0;
-            color: var(--text-main);
-            cursor: pointer;
-        }
         .btn-submit:hover {
-            background: var(--primary-hover);
-        }
-
-        /* PANELS OVERLAYS (Search & Filter) */
-        .search-box {
-            position: absolute;
-            top: 2rem;
-            right: 6.5rem; /* Ajustado al lado del toolbar */
-            background: var(--surface-glass);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-
-        .search-box.hidden, .filter-box.hidden {
-            opacity: 0;
-            transform: scale(0.95) translateX(10px);
-            pointer-events: none;
-        }
-
-        .search-box input {
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 0.5rem;
-            outline: none;
-            width: 200px;
-            font-family: inherit;
-        }
-
-        .search-box button {
-            background: var(--primary);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-        }
-
-        .filter-box {
-            position: absolute;
-            top: 2rem; /* Subido al top */
-            right: 6.5rem; /* Pegado a la barra de la derecha */
-            background: var(--surface-glass);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.25rem; /* Más grande */
-            width: 220px; /* Más ancho */
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-
-        .filter-header {
-            font-size: 0.95rem; /* Fuente más grande */
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 0.5rem;
-        }
-
-        .filter-body {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filter-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            color: var(--text-main);
-            font-size: 1rem; /* Más grande */
-        }
-
-        .filter-item input {
-            accent-color: var(--primary);
-            cursor: pointer;
-            width: 16px; height: 16px; /* Caja más grande */
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
-
     <div class="app-container">
         
-        <!-- SIDEBAR IZQUIERDA -->
+        <!-- SIDEBAR EXCLUSIVA GESTION IMPACTOS -->
         <aside class="sidebar-left">
             <div class="sidebar-top">
                 <!-- L Logo -->
@@ -541,7 +555,7 @@
                 </div>
                 
                 <!-- 2. Mapa Actual -->
-                <button class="icon-btn active" data-tooltip="Mapa Actual" onclick="window.location.href='{{ url('/') }}'">
+                <button class="icon-btn" data-tooltip="Mapa Actual" onclick="window.location.href='{{ url('/') }}'">
                     <svg viewBox="0 0 24 24"><path d="M9 3 5 6.993v13L9 17l6 3 4-3.993v-13L15 7l-6-4z"/><path d="M9 3v14M15 7v14"/></svg>
                 </button>
                 
@@ -551,79 +565,96 @@
                 </button>
                 
                 <!-- 4. Gestionar Impactos -->
-                <button class="icon-btn" data-tooltip="Gestionar Impactos" onclick="window.location.href='{{ url('/gestion-impactos') }}'">
+                <button class="icon-btn active" data-tooltip="Gestionar Impactos">
                     <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
                 </button>
             </div>
 
             <div class="sidebar-bottom">
-                <!-- Ajustes (Abajo Izquierda) -->
+                <!-- Ajustes -->
                 <button class="icon-btn" data-tooltip="Ajustes">
                     <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
             </div>
         </aside>
 
-        <!-- MAIN MAP AREA -->
+        <!-- MAIN LAYOUT -->
         <main class="main-content">
-            <!-- Contenedor Real del Mapa Leaflet -->
-            <div id="map" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
-            
-            <!-- TOOLBAR DERECHA -->
-            <div class="toolbar-right">
-                <!-- Ampliar -->
-                <button class="icon-btn" data-tooltip="Acercar (+)" id="btnZoomIn">
-                    <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                </button>
-                
-                <!-- Minimizar -->
-                <button class="icon-btn" data-tooltip="Alejar (-)" id="btnZoomOut">
-                    <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
-                </button>
+            <div class="container">
+                <div class="header">
+                    <h1>
+                        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+                        Gestión de Impactos
+                    </h1>
+                </div>
 
-                <div class="toolbar-divider"></div>
-
-
-
-                <!-- Búsqueda / Coordenada -->
-                <button class="icon-btn" data-tooltip="Búsqueda / Coordenadas" id="btnSearch">
-                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                </button>
-
-                <!-- Filtro de Capas -->
-                <button class="icon-btn" data-tooltip="Filtrar Elementos" id="btnFilter">
-                    <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                </button>
-            </div>
-
-            <!-- PANEL DE BÚSQUEDA FLOTANTE -->
-            <div id="search-container" class="search-box hidden">
-                <input type="text" id="search-input" placeholder="Buscar localización..." autocomplete="off">
-                <button id="btnSearchSubmit">
-                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                </button>
-            </div>
-
-            <!-- PANEL DE FILTROS FLOTANTE -->
-            <div id="filter-panel" class="filter-box hidden">
-                <div class="filter-header">Filtrar Capas</div>
-                <div class="filter-body">
-                    <label class="filter-item">
-                        <input type="checkbox" id="chkImpactos" checked>
-                        <span>Impactos</span>
-                    </label>
-                    <label class="filter-item">
-                        <input type="checkbox" id="chkArmas" checked>
-                        <span>Armas</span>
-                    </label>
+                <div class="table-container">
+                    <table id="impactosTable" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Área</th>
+                                <th>Arma</th>
+                                <th>Coords X/Y</th>
+                                <th>Momento</th>
+                                <th>Eficacia</th>
+                                <th style="width: 150px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+{{--                             <!-- Seed data mockup (can be replaced by AJAX later) -->
+                            <tr>
+                                <td class="text-muted">1</td>
+                                <td>Área Bravo</td>
+                                <td>HIMARS</td>
+                                <td>38.9 - -1.2</td>
+                                <td>24/10/2026 14:00</td>
+                                <td style="color: var(--primary);">Eficaz</td>
+                                <td>
+                                    <div class="td-actions">
+                                        <button class="btn btn-edit">Editar</button>
+                                        <button class="btn btn-danger">Borrar</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">2</td>
+                                <td>Área Charlie</td>
+                                <td>Artillería Pesada</td>
+                                <td>35.1 - -2.5</td>
+                                <td>25/10/2026 09:30</td>
+                                <td style="color: var(--danger);">Fallido</td>
+                                <td>
+                                    <div class="td-actions">
+                                        <button class="btn btn-edit">Editar</button>
+                                        <button class="btn btn-danger">Borrar</button>
+                                    </div>
+                                </td>
+                            </tr> --}}
+                            @foreach ($impactos as $impacto)
+                                <tr>
+                                    <td class="text-muted">{{ $impacto->id }}</td>
+                                    <td>{{ $impacto->area->nombre }}</td>
+                                    <td>{{ $impacto->arma->nombre }}</td>
+                                    <td>{{ $impacto->x_impacto }} / {{ $impacto->y_impacto }}</td>
+                                    <td>{{ $impacto->momento_impacto }}</td>
+                                    <td style="color: var(--primary);">{{ $impacto->es_eficaz ? 'Eficaz' : 'Fallido' }}</td>
+                                    <td>
+                                        <div class="td-actions">
+                                            <button class="btn btn-edit">Editar</button>
+                                            <button class="btn btn-danger">Borrar</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
             <!-- BOTÓN AÑADIR (Abajo Derecha) -->
             <button id="añadir" class="fab-add" data-tooltip="Añadir Nuevo Impacto">
                 <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             </button>
-            
         </main>
     </div>
 
@@ -641,9 +672,8 @@
             </div>
 
             <div class="modal-body">
-                <!-- FORMULARIO IMPACTO (Manejado por JS, no es un form real) -->
+                <!-- FORMULARIO IMPACTO -->
                 <div id="form-impacto" class="custom-form active-form">
-                    <!-- Atributos: x_impacto, y_impacto, momento_impacto, eficaz, id_area, id_arma -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Coordenada X</label>
@@ -675,9 +705,8 @@
                     <button type="button" id="btnGuardarImpacto" class="btn-submit">Guardar Impacto</button>
                 </div>
 
-                <!-- FORMULARIO ARMA (Manejado por JS, no es un form real) -->
+                <!-- FORMULARIO ARMA -->
                 <div id="form-arma" class="custom-form hidden-form">
-                    <!-- Atributos: tipo, nombre, descripcion, cord_x, cord_y, id_grupo -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre</label>
@@ -711,8 +740,8 @@
             </div>
         </div>
     </div>
-
-    @vite('resources/js/mapa.js')
+    
+    @vite('resources/js/gestionImpacto.js')
     @vite('resources/js/modal.js')
 </body>
 </html>

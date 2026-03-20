@@ -22,6 +22,7 @@ class ImpactoController extends Controller
                     "x_impacto" => $impacto->x_impacto,
                     "y_impacto" => $impacto->y_impacto,
                     "momento_impacto" => $impacto->momento_impacto,
+                    "efectivo" => $impacto->efectivo,
                     "eficaz" => $impacto->eficaz,
                     "area" => $impacto->area->nombre,
                     "arma" => $impacto->arma->nombre
@@ -46,6 +47,7 @@ class ImpactoController extends Controller
             $impacto->x_impacto = $request->x_impacto;
             $impacto->y_impacto = $request->y_impacto;
             $impacto->momento_impacto = $request->momento_impacto;
+            $impacto->efectivo = $request->efectivo;
             $impacto->eficaz = $request->eficaz;
             $impacto->id_area = $request->id_area;
             $impacto->id_arma = $request->id_arma;
@@ -77,6 +79,7 @@ class ImpactoController extends Controller
                 "x_impacto" => $impacto->x_impacto,
                 "y_impacto" => $impacto->y_impacto,
                 "momento_impacto" => $impacto->momento_impacto,
+                "efectivo" => $impacto->efectivo,
                 "eficaz" => $impacto->eficaz,
                 "area" => $impacto->area->nombre,
                 "arma" => $impacto->arma->nombre
