@@ -607,84 +607,79 @@
         </main>
     </div>
 
-    <!-- MODAL (Oculto por defecto) -->
-    <div id="addModal" class="modal-overlay hidden">
+    @include('components.add-modal')
+
+    <!-- MODAL CREAR/EDITAR ÁREA -->
+    <div id="modalArea" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Añadir Elemento</h2>
-                <button id="closeModal" class="btn-close">&times;</button>
+                <h2 id="modalAreaTitle">Añadir Nueva Área</h2>
+                <button id="closeModalArea" class="btn-close">&times;</button>
             </div>
-            
-            <div class="modal-tabs">
-                <button class="tab-btn active" data-target="form-impacto">Impacto</button>
-                <button class="tab-btn" data-target="form-arma">Arma</button>
-            </div>
-
             <div class="modal-body">
-                <!-- FORMULARIO IMPACTO -->
-                <div id="form-impacto" class="custom-form active-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Coordenada X</label>
-                            <input type="number" step="any" id="x_impacto" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label>Coordenada Y</label>
-                            <input type="number" step="any" id="y_impacto" autocomplete="off">
-                        </div>
-                    </div>
+                <form id="form-area" class="custom-form">
+                    <input type="hidden" id="area_id" name="id">
                     <div class="form-group">
-                        <label>Momento del Impacto</label>
-                        <input type="datetime-local" id="momento_impacto">
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" id="eficaz" value="1">
-                        <label for="eficaz">Impacto Eficaz</label>
+                        <label for="area_nombre">Nombre del Área</label>
+                        <input type="text" id="area_nombre" name="nombre" autocomplete="off" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>ID Área</label>
-                            <select id="id_area"></select>
+                            <label for="area_x">X Objetivo</label>
+                            <input type="number" step="any" id="area_x" name="x_objetivo" autocomplete="off" required>
                         </div>
                         <div class="form-group">
-                            <label>ID Arma </label>
-                            <select id="id_arma"></select>
+                            <label for="area_y">Y Objetivo</label>
+                            <input type="number" step="any" id="area_y" name="y_objetivo" autocomplete="off" required>
                         </div>
                     </div>
-                    <button type="button" id="btnGuardarImpacto" class="btn-submit">Guardar Impacto</button>
-                </div>
+                    
+                    <div class="form-group" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <label>Vértices del Polígono (<span id="countVertices">0</span>)</label>
+                        <div class="form-row" style="margin-bottom: 0.5rem; align-items: flex-end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <input type="number" step="any" id="vertice_x" placeholder="Coord X" autocomplete="off" style="font-size: 0.85rem;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <input type="number" step="any" id="vertice_y" placeholder="Coord Y" autocomplete="off" style="font-size: 0.85rem;">
+                            </div>
+                            <button type="button" id="btnAnyadirVertice" class="btn" style="height: 40px; min-width: 40px; display: flex; align-items: center; justify-content: center; padding: 0; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
+                        </div>
+                        <div class="vertices-list" id="listaVertices" style="max-height: 140px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.5rem;">
+                            <p id="noVerticesMsg" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin: 0.5rem 0;">No hay vértices añadidos</p>
+                        </div>
+                    </div>
+                    <button type="submit" id="btnGuardarArea" class="btn-submit">Guardar Área</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                <!-- FORMULARIO ARMA -->
-                <div id="form-arma" class="custom-form hidden-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" id="nombre_arma" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo</label>
-                            <input type="text" id="tipo_arma" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea id="descripcion_arma" rows="3"></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Cord X</label>
-                            <input type="number" step="any" id="cord_x_arma" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label>Cord Y</label>
-                            <input type="number" step="any" id="cord_y_arma" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ID Grupo</label>
-                        <select id="id_grupo_arma"></select>
-                    </div>
-                    <button type="button" id="btnGuardarArma" class="btn-submit">Guardar Arma</button>
+    <!-- MODAL ELIMINAR ÁREA -->
+    <div id="modalDeleteArea" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; border-bottom: none; margin-bottom: 0;">
+                <h2 style="color: var(--danger); font-size: 1.5rem;">
+                    <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; margin: 0 auto 10px; display: block;" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    Eliminar Área
+                </h2>
+            </div>
+            <div class="modal-body" style="padding: 1rem 0 1rem;">
+                <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                    ¿Estás seguro de que deseas eliminar esta área? Esta acción no se puede deshacer y eliminará todos los registros asociados.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <form id="form-delete-area" style="display: none;">
+                        <input type="hidden" id="delete_area_id" name="id">
+                    </form>
+                    <button type="button" id="btnCancelDeleteArea" class="btn" style="flex: 1; justify-content: center;">Cancelar</button>
+                    <button type="button" id="btnConfirmDeleteArea" class="btn btn-danger" style="flex: 1; justify-content: center;">Sí, Eliminar</button>
                 </div>
             </div>
         </div>
@@ -692,5 +687,6 @@
     
     @vite('resources/js/gestionarArea.js')
     @vite('resources/js/modal.js')
+    @vite('resources/js/settings.js')
 </body>
 </html>

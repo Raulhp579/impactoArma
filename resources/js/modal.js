@@ -79,4 +79,91 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSelectOptions('#id_area', '/api/areas');
     loadSelectOptions('#id_arma', '/api/armas');
     loadSelectOptions('#id_grupo_arma', '/api/grupos');
+    // ============================================
+    // CREAR NUEVO IMPACTO
+    // ============================================
+    const btnGuardarImpacto = document.getElementById('btnGuardarImpacto');
+    if (btnGuardarImpacto) {
+        btnGuardarImpacto.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const x = document.getElementById('x_impacto').value;
+            const y = document.getElementById('y_impacto').value;
+            const momento = document.getElementById('momento_impacto').value;
+            const id_area = document.getElementById('id_area').value;
+            const id_arma = document.getElementById('id_arma').value;
+
+            if (!x || !y || !momento || !id_area || !id_arma) {
+                alert("Campos obligatorios incompletos.");
+                return;
+            }
+
+            const datos = {
+                x_impacto: x, y_impacto: y, momento_impacto: momento,
+                id_area: id_area, id_arma: id_arma
+            };
+
+            try {
+                const response = await fetch('/api/impactos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                if (response.ok) {
+                    modal.classList.add('hidden');
+                    window.location.reload();
+                } else {
+                    const errorData = await response.json();
+                    alert("Error: " + (errorData.message || response.statusText));
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    }
+
+    // ============================================
+    // CREAR NUEVA ARMA
+    // ============================================
+    const btnGuardarArma = document.getElementById('btnGuardarArma');
+    if (btnGuardarArma) {
+        btnGuardarArma.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombre_arma').value;
+            const tipo = document.getElementById('tipo_arma').value;
+            const descripcion = document.getElementById('descripcion_arma').value;
+            const cx = document.getElementById('cord_x_arma').value;
+            const cy = document.getElementById('cord_y_arma').value;
+            const id_grupo = document.getElementById('id_grupo_arma').value;
+
+            if (!nombre || !tipo) {
+                alert("Rellena Nombre y Tipo de Arma.");
+                return;
+            }
+
+            const datos = {
+                nombre: nombre, tipo: tipo, descripcion: descripcion,
+                cord_x: cx, cord_y: cy, grupo_id: id_grupo
+            };
+
+            try {
+                const response = await fetch('/api/armas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                if (response.ok) {
+                    modal.classList.add('hidden');
+                    alert("Arma guardada exitosamente.");
+                    window.location.reload();
+                } else {
+                    const errorData = await response.json();
+                    alert("Error: " + (errorData.message || response.statusText));
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    }
 });

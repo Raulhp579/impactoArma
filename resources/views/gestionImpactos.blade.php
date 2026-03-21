@@ -586,6 +586,13 @@
                         <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
                         Gestión de Impactos
                     </h1>
+                    <div class="header-actions">
+                        <select id="filter-eficacia" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; border-radius: 8px; padding: 0.6rem 2.5rem 0.6rem 1rem; outline: none; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22white%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: center; font-family: inherit; font-size: 0.9rem;">
+                            <option value="" style="background: #1a1a1a;">Filtro Efectividad: Todos</option>
+                            <option value="Efectivo" style="background: #1a1a1a;">Efectivo</option>
+                            <option value="Fallido" style="background: #1a1a1a;">Fallido</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="table-container">
@@ -597,7 +604,8 @@
                                 <th>Arma</th>
                                 <th>Coords X/Y</th>
                                 <th>Momento</th>
-                                <th>Eficacia</th>
+                                <th>Efectivo</th>
+                                <th style="width: 120px">Eficacia %</th>
                                 <th style="width: 150px;">Acciones</th>
                             </tr>
                         </thead>
@@ -638,11 +646,19 @@
                                     <td>{{ $impacto->arma->nombre }}</td>
                                     <td>{{ $impacto->x_impacto }} / {{ $impacto->y_impacto }}</td>
                                     <td>{{ $impacto->momento_impacto }}</td>
-                                    <td style="color: var(--primary);">{{ $impacto->es_eficaz ? 'Eficaz' : 'Fallido' }}</td>
+                                    <td style="color: {{ $impacto->efectivo ? 'var(--primary)' : 'var(--danger)' }};">{{ $impacto->efectivo ? 'Efectivo' : 'Fallido' }}</td>
+                                    <td>{{ $impacto->eficacia }}%</td>
                                     <td>
                                         <div class="td-actions">
-                                            <button class="btn btn-edit">Editar</button>
-                                            <button class="btn btn-danger">Borrar</button>
+                                            <button class="btn btn-edit" 
+                                                data-id="{{ $impacto->id }}" 
+                                                data-x="{{ $impacto->x_impacto }}" 
+                                                data-y="{{ $impacto->y_impacto }}" 
+                                                data-momento="{{ $impacto->momento_impacto }}" 
+                                                data-efectivo="{{ $impacto->efectivo }}"
+                                                data-id-area="{{ $impacto->id_area }}"
+                                                data-id-arma="{{ $impacto->id_arma }}">Editar</button>
+                                            <button class="btn btn-danger" data-id="{{ $impacto->id }}">Borrar</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -658,84 +674,72 @@
         </main>
     </div>
 
-    <!-- MODAL (Oculto por defecto) -->
-    <div id="addModal" class="modal-overlay hidden">
+    @include('components.add-modal')
+
+    <!-- MODAL EDITAR IMPACTO -->
+    <div id="modalEditImpacto" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Añadir Elemento</h2>
-                <button id="closeModal" class="btn-close">&times;</button>
+                <h2>Editar Impacto</h2>
+                <button id="closeModalEditImpacto" class="btn-close">&times;</button>
             </div>
-            
-            <div class="modal-tabs">
-                <button class="tab-btn active" data-target="form-impacto">Impacto</button>
-                <button class="tab-btn" data-target="form-arma">Arma</button>
-            </div>
-
             <div class="modal-body">
-                <!-- FORMULARIO IMPACTO -->
-                <div id="form-impacto" class="custom-form active-form">
+                <form id="form-edit-impacto" class="custom-form">
+                    <input type="hidden" id="edit_impacto_id" name="id">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Coordenada X</label>
-                            <input type="number" step="any" id="x_impacto" autocomplete="off">
+                            <input type="number" step="any" id="edit_x_impacto" autocomplete="off" required>
                         </div>
                         <div class="form-group">
                             <label>Coordenada Y</label>
-                            <input type="number" step="any" id="y_impacto" autocomplete="off">
+                            <input type="number" step="any" id="edit_y_impacto" autocomplete="off" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Momento del Impacto</label>
-                        <input type="datetime-local" id="momento_impacto">
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" id="eficaz" value="1">
-                        <label for="eficaz">Impacto Eficaz</label>
+                        <input type="datetime-local" id="edit_momento_impacto" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>ID Área</label>
-                            <select id="id_area"></select>
+                            <label>Área</label>
+                            <select id="edit_id_area" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
                         </div>
                         <div class="form-group">
-                            <label>ID Arma </label>
-                            <select id="id_arma"></select>
+                            <label>Arma</label>
+                            <select id="edit_id_arma" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
                         </div>
                     </div>
-                    <button type="button" id="btnGuardarImpacto" class="btn-submit">Guardar Impacto</button>
-                </div>
 
-                <!-- FORMULARIO ARMA -->
-                <div id="form-arma" class="custom-form hidden-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" id="nombre_arma" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo</label>
-                            <input type="text" id="tipo_arma" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea id="descripcion_arma" rows="3"></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Cord X</label>
-                            <input type="number" step="any" id="cord_x_arma" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label>Cord Y</label>
-                            <input type="number" step="any" id="cord_y_arma" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ID Grupo</label>
-                        <select id="id_grupo_arma"></select>
-                    </div>
-                    <button type="button" id="btnGuardarArma" class="btn-submit">Guardar Arma</button>
+                    <button type="submit" id="btnGuardarEditImpacto" class="btn-submit">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ELIMINAR IMPACTO -->
+    <div id="modalDeleteImpacto" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; border-bottom: none; margin-bottom: 0;">
+                <h2 style="color: var(--danger); font-size: 1.5rem;">
+                    <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; margin: 0 auto 10px; display: block;" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    Eliminar Impacto
+                </h2>
+            </div>
+            <div class="modal-body" style="padding: 1rem 0 1rem;">
+                <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                    ¿Estás seguro de que deseas eliminar este impacto? Esta acción no se puede deshacer y los datos se perderán permanentemente.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <form id="form-delete-impacto" style="display: none;">
+                        <input type="hidden" id="delete_impacto_id" name="id">
+                    </form>
+                    <button type="button" id="btnCancelDeleteImpacto" class="btn" style="flex: 1; justify-content: center;">Cancelar</button>
+                    <button type="button" id="btnConfirmDeleteImpacto" class="btn btn-danger" style="flex: 1; justify-content: center;">Sí, Eliminar</button>
                 </div>
             </div>
         </div>
@@ -743,5 +747,6 @@
     
     @vite('resources/js/gestionImpacto.js')
     @vite('resources/js/modal.js')
+    @vite('resources/js/settings.js')
 </body>
 </html>

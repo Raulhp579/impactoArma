@@ -12,7 +12,7 @@ class Impacto extends Model
         "x_impacto",
         "y_impacto",
         "momento_impacto",
-        "eficaz",
+        "eficacia",
         "efectivo",
         "id_area",
         "id_arma",

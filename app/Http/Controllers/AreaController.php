@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Area;
+use App\Models\Vertice;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class AreaController extends Controller
     public function index()
     {
         try{
-            $areas = Area::all();
+            $areas = Area::with('vertices')->get();
             return response()->json($areas);
         }catch(Exception $e){
             return response()->json([
@@ -35,7 +36,16 @@ class AreaController extends Controller
             $area->x_objetivo = $request->x_objetivo;
             $area->y_objetivo = $request->y_objetivo;
             $area->save();
-            return response()->json($area);
+            if ($request->has('vertices')) {
+                foreach ($request->vertices as $v) {
+                    Vertice::create([
+                        'id_area' => $area->id,
+                        'x' => $v['x'],
+                        'y' => $v['y']
+                    ]);
+                }
+            }
+            return response()->json($area->load('vertices'));
         }catch(Exception $e){
             return response()->json([
                 "message" => "Error al crear el area",
@@ -50,7 +60,7 @@ class AreaController extends Controller
     public function show(string $id)
     {
         try{
-            $area = Area::find($id);
+            $area = Area::with('vertices')->find($id);
             return response()->json($area);
         }catch(Exception $e){
             return response()->json([
@@ -71,7 +81,17 @@ class AreaController extends Controller
             $area->x_objetivo = $request->x_objetivo;
             $area->y_objetivo = $request->y_objetivo;
             $area->save();
-            return response()->json($area);
+            if ($request->has('vertices')) {
+                Vertice::where('id_area', $area->id)->delete();
+                foreach ($request->vertices as $v) {
+                    Vertice::create([
+                        'id_area' => $area->id,
+                        'x' => $v['x'],
+                        'y' => $v['y']
+                    ]);
+                }
+            }
+            return response()->json($area->load('vertices'));
         }catch(Exception $e){
             return response()->json([
                 "message" => "Error al actualizar el area",

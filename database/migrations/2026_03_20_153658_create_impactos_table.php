@@ -16,7 +16,8 @@ return new class extends Migration
             $table->bigInteger("x_impacto");
             $table->bigInteger("y_impacto");
             $table->dateTime("momento_impacto");
-            $table->boolean("eficaz");
+            $table->boolean("efectivo")->default(false);
+            $table->double("eficacia")->nullable();
             $table->unsignedBigInteger("id_area");
             $table->unsignedBigInteger("id_arma");
             $table->timestamps();
