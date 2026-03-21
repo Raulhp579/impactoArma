@@ -15,7 +15,7 @@ class AreaController extends Controller
     public function index()
     {
         try{
-            $areas = Area::with('vertices')->get();
+            $areas = Area::with(['vertices', 'objetivos'])->get();
             return response()->json($areas);
         }catch(Exception $e){
             return response()->json([
@@ -33,9 +33,20 @@ class AreaController extends Controller
         try{
             $area = new Area();
             $area->nombre = $request->nombre;
-            $area->x_objetivo = $request->x_objetivo;
-            $area->y_objetivo = $request->y_objetivo;
+            // Prevenir error NOT NULL constraint si las columnas antiguas siguen en la DB
+            $area->x_objetivo = 0; 
+            $area->y_objetivo = 0;
+            
             $area->save();
+            if ($request->has('objetivos')) {
+                foreach ($request->objetivos as $v) {
+                    \App\Models\ObjetivoArea::create([
+                        'id_area' => $area->id,
+                        'x_zona' => $v['x_zona'],
+                        'y_zona' => $v['y_zona']
+                    ]);
+                }
+            }
             if ($request->has('vertices')) {
                 foreach ($request->vertices as $v) {
                     Vertice::create([
@@ -60,7 +71,7 @@ class AreaController extends Controller
     public function show(string $id)
     {
         try{
-            $area = Area::with('vertices')->find($id);
+            $area = Area::with(['vertices', 'objetivos'])->find($id);
             return response()->json($area);
         }catch(Exception $e){
             return response()->json([
@@ -78,9 +89,20 @@ class AreaController extends Controller
         try{
             $area = Area::find($id);
             $area->nombre = $request->nombre;
-            $area->x_objetivo = $request->x_objetivo;
-            $area->y_objetivo = $request->y_objetivo;
+            // Prevenir error NOT NULL constraint si las columnas antiguas siguen en la DB
+            $area->x_objetivo = 0; 
+            $area->y_objetivo = 0;
             $area->save();
+            if ($request->has('objetivos')) {
+                \App\Models\ObjetivoArea::where('id_area', $area->id)->delete();
+                foreach ($request->objetivos as $v) {
+                    \App\Models\ObjetivoArea::create([
+                        'id_area' => $area->id,
+                        'x_zona' => $v['x_zona'],
+                        'y_zona' => $v['y_zona']
+                    ]);
+                }
+            }
             if ($request->has('vertices')) {
                 Vertice::where('id_area', $area->id)->delete();
                 foreach ($request->vertices as $v) {

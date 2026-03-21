@@ -59,3 +59,40 @@ body.light-map-theme .main-content {
     background-color: #e5e7eb; /* Light gray base */
     background-blend-mode: screen; /* Blend the dark map to become very light */
 }
+
+/* =========================================
+   BOTÓN FLOTANTE AÑADIR (FAB) UNIFICADO
+   ========================================= */
+.fab-add {
+    position: fixed;
+    bottom: 2.5rem;
+    right: 2.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px; /* Redondeado idéntico a la imagen */
+    background: #3b82f6; /* Azul vibrante de la imagen */
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 100;
+}
+
+.fab-add:hover {
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 15px 35px -5px rgba(59, 130, 246, 0.5);
+}
+
+.fab-add:active {
+    transform: scale(0.95);
+}
+
+.fab-add svg {
+    width: 28px;
+    height: 28px;
+    stroke-width: 2.5;
+}

@@ -8,13 +8,51 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalAreaTitle = document.getElementById("modalAreaTitle");
 
     let tempVertices = [];
+    // ----------------------------------------
+    // ELEMENTOS MODAL OBJETIVOS INDEPENDIENTE
+    // ----------------------------------------
+    const modalAddObjetivo = document.getElementById("modalAddObjetivo");
+    const closeModalObjetivo = document.getElementById("closeModalObjetivo");
+    const nombreAreaObjetivo = document.getElementById("nombreAreaObjetivo");
+    const inputObjAreaId = document.getElementById("obj_area_id");
+    
+    const formAddObjetivo = document.getElementById("form-add-objetivo");
+    const inputNewObjX = document.getElementById("new_obj_x");
+    const inputNewObjY = document.getElementById("new_obj_y");
+    const listaObjetivosExistentes = document.getElementById("listaObjetivosExistentes");
+
+    function cargarObjetivosExistentes(idArea) {
+        if (!listaObjetivosExistentes) return;
+        listaObjetivosExistentes.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">Cargando...</p>`;
+        
+        fetch(`/api/areas/${idArea}`)
+            .then(r => r.json())
+            .then(data => {
+                listaObjetivosExistentes.innerHTML = "";
+                if (data && data.objetivos && data.objetivos.length > 0) {
+                    data.objetivos.forEach(o => {
+                        const div = document.createElement("div");
+                        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; background: rgba(255,255,255,0.02); margin-bottom: 3px; border-radius: 4px;";
+                        div.innerHTML = `
+                            <span><b style="color:var(--primary);">${o.nombre || 'Objetivo'}:</b> X:${o.x_zona} Y:${o.y_zona}</span>
+                            <button type="button" class="btn-delete-obj" data-id="${o.id}" style="background:transparent; border:none; color:var(--danger); cursor:pointer; display:flex; align-items:center; gap:4px; font-size:0.8rem; padding:2px 4px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/></svg>
+                                Borrar
+                            </button>
+                        `;
+                        listaObjetivosExistentes.appendChild(div);
+                    });
+                } else {
+                    listaObjetivosExistentes.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin:0.5rem 0;">No hay objetivos</p>`;
+                }
+            })
+            .catch(err => console.error("Error cargando objetivos:", err));
+    }
 
     // Formulario Área
     const formArea = document.getElementById("form-area");
     const inputAreaId = document.getElementById("area_id");
     const inputAreaNombre = document.getElementById("area_nombre");
-    const inputAreaX = document.getElementById("area_x");
-    const inputAreaY = document.getElementById("area_y");
 
     // Vértices elements
     const inputVerticeX = document.getElementById("vertice_x");
@@ -83,16 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------
     // MOSTRAR/OCULTAR MODAL CREAR/EDITAR
     // ----------------------------------------
-    if (btnCrearArea) {
-        btnCrearArea.addEventListener("click", () => {
-            modalAreaTitle.textContent = "Añadir Nueva Área";
-            formArea.reset();
-            inputAreaId.value = "";
-            tempVertices = [];
-            renderVertices();
-            modalArea.classList.remove("hidden");
-        });
-    }
 
     if (closeModalArea) {
         closeModalArea.addEventListener("click", () => {
@@ -108,23 +136,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Botones Editar en la Tabla (Event Delegation para mayor robustez)
     document.querySelector("#areasTableBody")?.addEventListener("click", (e) => {
+        const btnAddObj = e.target.closest(".btn-add-objetivo");
+        if (btnAddObj) {
+            const id = btnAddObj.getAttribute("data-id");
+            const nombre = btnAddObj.getAttribute("data-nombre");
+            nombreAreaObjetivo.textContent = nombre;
+            inputObjAreaId.value = id;
+            if (typeof hasChanges !== 'undefined') hasChanges = false;
+            cargarObjetivosExistentes(id);
+            modalAddObjetivo.classList.remove("hidden");
+            return; // Prevenir click en btnEdit
+        }
+
         const btnEdit = e.target.closest(".btn-edit");
         if (btnEdit) {
             const row = btnEdit.closest("tr");
             const id = row.cells[0].textContent.trim();
             const nombre = row.cells[1].textContent.trim();
-            const x = row.cells[2].textContent.trim();
-            const y = row.cells[3].textContent.trim();
 
             modalAreaTitle.textContent = "Editar Área";
             inputAreaId.value = id;
             inputAreaNombre.value = nombre;
-            inputAreaX.value = x;
-            inputAreaY.value = y;
 
             tempVertices = [];
             renderVertices();
-            // Fetch vertices for this area
+
             fetch(`/api/areas/${id}`)
                 .then(r => r.json())
                 .then(data => {
@@ -133,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         renderVertices();
                     }
                 })
-                .catch(err => console.error("Error fetching vertices:", err));
+                .catch(err => console.error("Error fetching data:", err));
 
             modalArea.classList.remove("hidden");
         }
@@ -172,8 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const id = inputAreaId.value;
             const datos = {
                 nombre: inputAreaNombre.value,
-                x_objetivo: inputAreaX.value,
-                y_objetivo: inputAreaY.value,
                 vertices: tempVertices
             };
 
@@ -230,6 +264,77 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) {
                 console.error("Error:", error);
                 alert("Error de conexión");
+            }
+        });
+    }
+
+    let hasChanges = false; // NUEVO
+
+    // Cierre modal objetivos
+    if (closeModalObjetivo) {
+        closeModalObjetivo.addEventListener("click", () => {
+            modalAddObjetivo.classList.add("hidden");
+            if (hasChanges) window.location.reload();
+        });
+    }
+
+    if (modalAddObjetivo) {
+        modalAddObjetivo.addEventListener("click", (e) => {
+            if (e.target === modalAddObjetivo) {
+                modalAddObjetivo.classList.add("hidden");
+                if (hasChanges) window.location.reload();
+            }
+        });
+    }
+
+    // Submit Añadir Objetivo
+    if (formAddObjetivo) {
+        formAddObjetivo.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const idArea = inputObjAreaId.value;
+            const inputNombre = document.getElementById("new_obj_nombre");
+            const datos = {
+                id_area: idArea,
+                nombre: inputNombre ? inputNombre.value : "",
+                x_zona: parseFloat(inputNewObjX.value),
+                y_zona: parseFloat(inputNewObjY.value)
+            };
+
+            try {
+                const res = await fetch("/api/objetivos_area", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify(datos)
+                });
+                if (res.ok) {
+                    if (inputNombre) inputNombre.value = "";
+                    inputNewObjX.value = "";
+                    inputNewObjY.value = "";
+                    hasChanges = true;
+                    cargarObjetivosExistentes(idArea);
+                } else { alert("Error al guardar objetivo"); }
+            } catch (error) { console.error(error); }
+        });
+    }
+
+    // Delete objetivo
+    if (listaObjetivosExistentes) {
+        listaObjetivosExistentes.addEventListener("click", async (e) => {
+            if (e.target.classList.contains("btn-delete-obj")) {
+                const idObj = e.target.getAttribute("data-id");
+                const idArea = inputObjAreaId.value;
+                if (!confirm("¿Eliminar objetivo?")) return;
+
+                try {
+                    const res = await fetch(`/api/objetivos_area/${idObj}`, { method: "DELETE" });
+                    if (res.ok) { 
+                        hasChanges = true;
+                        cargarObjetivosExistentes(idArea); 
+                    }
+                } catch (error) { console.error(error); }
             }
         });
     }

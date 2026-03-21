@@ -199,39 +199,6 @@
             margin: 0.25rem 0.5rem;
         }
 
-        /* ADD FAB (Floating Action Button) */
-        .fab-add {
-            position: absolute;
-            bottom: 2.5rem;
-            right: 2.5rem;
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #60a5fa);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 10;
-        }
-
-        .fab-add:hover {
-            transform: scale(1.08) translateY(-4px);
-            box-shadow: 0 15px 35px -5px rgba(59, 130, 246, 0.6);
-        }
-
-        .fab-add:active {
-            transform: scale(0.95);
-        }
-
-        .fab-add svg {
-            width: 32px;
-            height: 32px;
-        }
 
         /* SVG Defaults */
         svg {

@@ -10,8 +10,9 @@ Route::get('/', function () {
 
 Route::get('/gestionar-areas', function () {
     $areas = Area::all();
+    $grupos = \App\Models\Grupo::all();
 
-    return view('gestionarAreas', compact('areas'));
+    return view('gestionarAreas', compact('areas', 'grupos'));
 });
 
 Route::get('/gestion-impactos', function () {

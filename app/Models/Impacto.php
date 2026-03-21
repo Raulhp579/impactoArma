@@ -16,6 +16,7 @@ class Impacto extends Model
         "efectivo",
         "id_area",
         "id_arma",
+        "id_objetivo", // <--- Nuevo
     ];
 
     public function area()
@@ -26,5 +27,10 @@ class Impacto extends Model
     public function arma()
     {
         return $this->belongsTo(Arma::class, "id_arma");
+    }
+
+    public function objetivo()
+    {
+        return $this->belongsTo(ObjetivoArea::class, "id_objetivo");
     }
 }

@@ -21,6 +21,157 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 1.b INICIALIZAR DATATABLE ARMAS
+    let tableArmas = new DataTable('#armasTable', {
+        responsive: true,
+        lengthChange: false, 
+        searching: true, 
+        dom: 't', 
+        paging: false,       
+        info: false,         
+        ajax: { url: '/api/armas', dataSrc: '' },
+        columns: [
+            { data: 'id', className: 'text-muted' },
+            { data: 'nombre' },
+            { data: 'tipo' },
+            { data: 'descripcion', defaultContent: '' },
+            { data: 'grupo' },
+            { data: null, render: function(row) { return `${row.x} / ${row.y}`; } },
+            { data: null, render: function(row) {
+                const desc = row.descripcion ? row.descripcion.replace(/"/g, '&quot;') : '';
+                return `<div class="td-actions">
+                            <button class="btn btn-edit btn-edit-arma" 
+                                data-id="${row.id}" 
+                                data-nombre="${row.nombre}" 
+                                data-tipo="${row.tipo}" 
+                                data-descripcion="${desc}" 
+                                data-id_grupo="${row.id_grupo}" 
+                                data-x="${row.x}" 
+                                data-y="${row.y}">Editar</button>
+                            <button class="btn btn-danger btn-delete-arma-modal" data-id="${row.id}">Borrar</button>
+                        </div>`;
+            }}
+        ],
+        language: {
+            "emptyTable": "No hay armas registradas",
+            "search": "Buscar:"
+        }
+    });
+
+    // ----------------------------------------
+    // 1.c LÓGICA DE DESLIZAMIENTO DE TABLAS (Tabs)
+    // ----------------------------------------
+    document.querySelectorAll('.tab-item').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const value = tab.getAttribute('data-value');
+
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const slider = document.getElementById('table-slider');
+            const filterEficacia = document.getElementById('filter-eficacia');
+
+            if (slider) {
+                slider.style.transform = value === 'armas' ? 'translateX(-50%)' : 'translateX(0%)';
+            }
+            
+            if (filterEficacia) {
+                filterEficacia.style.display = value === 'armas' ? 'none' : 'block';
+            }
+        });
+    });
+
+    // ----------------------------------------
+    // 1.d EVENTOS PARA TABLA ARMAS (Editar/Borrar Modales)
+    // ----------------------------------------
+    const modalEditArma = document.getElementById('modalEditArma');
+    const modalDeleteArma = document.getElementById('modalDeleteArma');
+
+    document.querySelector('#armasTable tbody')?.addEventListener('click', (e) => {
+        // EDITAR ARMA
+        const btnEdit = e.target.closest('.btn-edit-arma');
+        if (btnEdit) {
+            document.getElementById('edit_arma_id').value = btnEdit.getAttribute('data-id');
+            document.getElementById('edit_nombre_arma').value = btnEdit.getAttribute('data-nombre');
+            document.getElementById('edit_tipo_arma').value = btnEdit.getAttribute('data-tipo');
+            document.getElementById('edit_descripcion_arma').value = btnEdit.getAttribute('data-descripcion');
+            document.getElementById('edit_x_arma').value = btnEdit.getAttribute('data-x');
+            document.getElementById('edit_y_arma').value = btnEdit.getAttribute('data-y');
+
+            const idGrupo = btnEdit.getAttribute('data-id_grupo');
+            const selectGrupo = document.getElementById('edit_id_grupo_arma');
+            if (selectGrupo) selectGrupo.value = idGrupo || "";
+
+            modalEditArma.classList.remove('hidden');
+        }
+
+        // ELIMINAR ARMA
+        const btnDelete = e.target.closest('.btn-delete-arma-modal');
+        if (btnDelete) {
+            document.getElementById('delete_arma_id').value = btnDelete.getAttribute('data-id');
+            modalDeleteArma.classList.remove('hidden');
+        }
+    });
+
+    // Cargar select grupos en edit de arma
+    setTimeout(() => {
+        if (typeof cargarSelectsEdit === 'function') {
+            cargarSelectsEdit('#edit_id_grupo_arma', '/api/grupos');
+        }
+    }, 500);
+
+    // Cerrar Modales Arma
+    document.getElementById('closeModalEditArma')?.addEventListener('click', () => modalEditArma.classList.add('hidden'));
+    document.getElementById('btnCancelDeleteArma')?.addEventListener('click', () => modalDeleteArma.classList.add('hidden'));
+
+    modalEditArma?.addEventListener('click', (e) => { if (e.target === modalEditArma) modalEditArma.classList.add('hidden'); });
+    modalDeleteArma?.addEventListener('click', (e) => { if (e.target === modalDeleteArma) modalDeleteArma.classList.add('hidden'); });
+
+    // Submit Editar Arma
+    document.getElementById('form-edit-arma')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit_arma_id').value;
+        const datos = {
+            nombre: document.getElementById('edit_nombre_arma').value,
+            tipo: document.getElementById('edit_tipo_arma').value,
+            descripcion: document.getElementById('edit_descripcion_arma').value,
+            id_grupo: document.getElementById('edit_id_grupo_arma').value,
+            cord_x: document.getElementById('edit_x_arma').value,
+            cord_y: document.getElementById('edit_y_arma').value
+        };
+
+        try {
+            const response = await fetch(`/api/armas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            if (response.ok) {
+                modalEditArma.classList.add('hidden');
+                tableArmas.ajax.reload();
+            } else {
+                alert("Error al actualizar arma.");
+            }
+        } catch (err) { console.error(err); }
+    });
+
+    // Confirmar Eliminar Arma
+    document.getElementById('btnConfirmDeleteArma')?.addEventListener('click', async () => {
+        const id = document.getElementById('delete_arma_id').value;
+        try {
+            const response = await fetch(`/api/armas/${id}`, {
+                method: 'DELETE',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (response.ok) {
+                modalDeleteArma.classList.add('hidden');
+                tableArmas.ajax.reload();
+            } else {
+                alert("Error al eliminar arma.");
+            }
+        } catch (err) { console.error(err); }
+    });
+
     // ----------------------------------------
     // 2. FILTRO POR EFICACIA
     // ----------------------------------------
@@ -62,8 +213,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // NUEVO: Cargar objetivos para el editar
+    async function cargarObjetivosEdit(areaId, selectElement, selectedId = null) {
+        if (!selectElement) return;
+        if (!areaId) {
+            selectElement.innerHTML = '<option value="">Selecciona un área...</option>';
+            return;
+        }
+
+        selectElement.innerHTML = '<option value="">Cargando objetivos...</option>';
+        try {
+            const response = await fetch(`/api/areas/${areaId}`);
+            const data = await response.json();
+            const objetivos = data.objetivos || [];
+
+            selectElement.innerHTML = '<option value="">Seleccione un objetivo</option>';
+            objetivos.forEach(obj => {
+                const option = document.createElement("option");
+                option.value = obj.id;
+                option.textContent = obj.nombre || `Objetivo ID: ${obj.id}`;
+                if (selectedId && obj.id == selectedId) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        } catch (error) { console.error(error); }
+    }
+
     cargarSelectsEdit('#edit_id_area', '/api/areas');
     cargarSelectsEdit('#edit_id_arma', '/api/armas');
+
+    const editIdObjetivo = document.getElementById('edit_id_objetivo');
+    if (editIdArea) {
+        editIdArea.addEventListener('change', (e) => {
+            cargarObjetivosEdit(e.target.value, editIdObjetivo);
+        });
+    }
 
     // ----------------------------------------
     // 4. ELEMENTOS MODALES
@@ -102,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const efectivo = btnEdit.getAttribute('data-efectivo') == '1' || btnEdit.getAttribute('data-efectivo') == 'true';
             const idArea = btnEdit.getAttribute('data-id-area');
+            const idObjetivo = btnEdit.getAttribute('data-id-objetivo'); // <--- Nuevo
             const idArma = btnEdit.getAttribute('data-id-arma');
 
             editImpactoId.value = id;
@@ -111,6 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (editIdArea) editIdArea.value = idArea || "";
             if (editIdArma) editIdArma.value = idArma || "";
+
+            // Cargar objetivos del área y seleccionar el guardado
+            if (idArea && editIdObjetivo) {
+                cargarObjetivosEdit(idArea, editIdObjetivo, idObjetivo);
+            } else if (editIdObjetivo) {
+                editIdObjetivo.innerHTML = '<option value="">Selecciona un área...</option>';
+            }
 
             modalEditImpacto.classList.remove('hidden');
         }
@@ -155,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 y_impacto: editYImpacto.value,
                 momento_impacto: editMomentoImpacto.value,
                 id_area: editIdArea.value,           
+                id_objetivo: document.getElementById('edit_id_objetivo')?.value || null, // <--- Nuevo
                 id_arma: editIdArma.value            
             };
 

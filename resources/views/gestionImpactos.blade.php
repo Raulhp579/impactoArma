@@ -376,40 +376,6 @@
             gap: 0.5rem;
         }
 
-        /* ADD FAB (Floating Action Button) */
-        .fab-add {
-            position: fixed; /* Fixed para vistas de tabla */
-            bottom: 2.5rem;
-            right: 2.5rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #60a5fa);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 100;
-        }
-
-        .fab-add:hover {
-            transform: scale(1.08) translateY(-4px);
-            box-shadow: 0 15px 35px -5px rgba(59, 130, 246, 0.6);
-        }
-
-        .fab-add:active {
-            transform: scale(0.95);
-        }
-
-        .fab-add svg {
-            width: 28px;
-            height: 28px;
-            stroke-width: 2.5;
-        }
 
         /* MODAL */
         .modal-overlay {
@@ -541,6 +507,36 @@
         .btn-submit:hover {
             opacity: 0.9;
         }
+        /* NUEVAS PESTAÑAS TABLA */
+        .table-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 10px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 4px;
+        }
+        .tab-item {
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-item:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .tab-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -586,85 +582,90 @@
                         <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
                         Gestión de Impactos
                     </h1>
-                    <div class="header-actions">
+                    <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
                         <select id="filter-eficacia" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; border-radius: 8px; padding: 0.6rem 2.5rem 0.6rem 1rem; outline: none; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22white%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: center; font-family: inherit; font-size: 0.9rem;">
                             <option value="" style="background: #1a1a1a;">Filtro Efectividad: Todos</option>
                             <option value="Efectivo" style="background: #1a1a1a;">Efectivo</option>
                             <option value="Fallido" style="background: #1a1a1a;">Fallido</option>
                         </select>
+
+                        <div class="table-tabs">
+                            <div class="tab-item active" data-value="impactos">📊 Impactos</div>
+                            <div class="tab-item" data-value="armas">🛡️ Armas</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="table-container">
-                    <table id="impactosTable" class="display" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Área</th>
-                                <th>Arma</th>
-                                <th>Coords X/Y</th>
-                                <th>Momento</th>
-                                <th>Efectivo</th>
-                                <th style="width: 120px">Eficacia %</th>
-                                <th style="width: 150px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-{{--                             <!-- Seed data mockup (can be replaced by AJAX later) -->
-                            <tr>
-                                <td class="text-muted">1</td>
-                                <td>Área Bravo</td>
-                                <td>HIMARS</td>
-                                <td>38.9 - -1.2</td>
-                                <td>24/10/2026 14:00</td>
-                                <td style="color: var(--primary);">Eficaz</td>
-                                <td>
-                                    <div class="td-actions">
-                                        <button class="btn btn-edit">Editar</button>
-                                        <button class="btn btn-danger">Borrar</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">2</td>
-                                <td>Área Charlie</td>
-                                <td>Artillería Pesada</td>
-                                <td>35.1 - -2.5</td>
-                                <td>25/10/2026 09:30</td>
-                                <td style="color: var(--danger);">Fallido</td>
-                                <td>
-                                    <div class="td-actions">
-                                        <button class="btn btn-edit">Editar</button>
-                                        <button class="btn btn-danger">Borrar</button>
-                                    </div>
-                                </td>
-                            </tr> --}}
-                            @foreach ($impactos as $impacto)
-                                <tr>
-                                    <td class="text-muted">{{ $impacto->id }}</td>
-                                    <td>{{ $impacto->area->nombre }}</td>
-                                    <td>{{ $impacto->arma->nombre }}</td>
-                                    <td>{{ $impacto->x_impacto }} / {{ $impacto->y_impacto }}</td>
-                                    <td>{{ $impacto->momento_impacto }}</td>
-                                    <td style="color: {{ $impacto->efectivo ? 'var(--primary)' : 'var(--danger)' }};">{{ $impacto->efectivo ? 'Efectivo' : 'Fallido' }}</td>
-                                    <td>{{ $impacto->eficacia }}%</td>
-                                    <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-edit" 
-                                                data-id="{{ $impacto->id }}" 
-                                                data-x="{{ $impacto->x_impacto }}" 
-                                                data-y="{{ $impacto->y_impacto }}" 
-                                                data-momento="{{ $impacto->momento_impacto }}" 
-                                                data-efectivo="{{ $impacto->efectivo }}"
-                                                data-id-area="{{ $impacto->id_area }}"
-                                                data-id-arma="{{ $impacto->id_arma }}">Editar</button>
-                                            <button class="btn btn-danger" data-id="{{ $impacto->id }}">Borrar</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <!-- SLIDER DE TABLAS -->
+                <div class="table-slider-container" style="overflow: hidden; width: 100%; flex: 1; position: relative;">
+                    <div id="table-slider" style="display: flex; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 200%; height: 100%;">
+                        
+                        <!-- TABLA IMPACTOS -->
+                        <div class="table-container" style="width: 50%; height: 100%; overflow-y: auto; padding: 0 2rem 2rem 2rem;">
+                            <table id="impactosTable" class="display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Área</th>
+                                        <th>Arma</th>
+                                        <th>Coords X/Y</th>
+                                        <th>Momento</th>
+                                        <th>Efectivo</th>
+                                        <th style="width: 120px">Eficacia %</th>
+                                        <th style="width: 150px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($impactos as $impacto)
+                                        <tr>
+                                            <td class="text-muted">{{ $impacto->id }}</td>
+                                            <td>{{ $impacto->area->nombre }}</td>
+                                            <td>{{ $impacto->arma->nombre }}</td>
+                                            <td>{{ $impacto->x_impacto }} / {{ $impacto->y_impacto }}</td>
+                                            <td>{{ $impacto->momento_impacto }}</td>
+                                            <td style="color: {{ $impacto->efectivo ? 'var(--primary)' : 'var(--danger)' }};">{{ $impacto->efectivo ? 'Efectivo' : 'Fallido' }}</td>
+                                            <td>{{ $impacto->eficacia }}%</td>
+                                            <td>
+                                                <div class="td-actions">
+                                                    <button class="btn btn-edit" 
+                                                        data-id="{{ $impacto->id }}" 
+                                                        data-x="{{ $impacto->x_impacto }}" 
+                                                        data-y="{{ $impacto->y_impacto }}" 
+                                                        data-momento="{{ $impacto->momento_impacto }}" 
+                                                        data-efectivo="{{ $impacto->efectivo }}"
+                                                        data-id-area="{{ $impacto->id_area }}"
+                                                        data-id-objetivo="{{ $impacto->id_objetivo }}"
+                                                        data-id-arma="{{ $impacto->id_arma }}">Editar</button>
+                                                    <button class="btn btn-danger" data-id="{{ $impacto->id }}">Borrar</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- TABLA ARMAS -->
+                        <div class="table-container" style="width: 50%; height: 100%; overflow-y: auto; padding: 0 2rem 2rem 2rem;">
+                            <table id="armasTable" class="display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Descripción</th>
+                                        <th>Grupo</th>
+                                        <th>Coords X/Y</th>
+                                        <th style="width: 120px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
                 </div>
             </div>
             <!-- BOTÓN AÑADIR (Abajo Derecha) -->
@@ -706,9 +707,15 @@
                             <select id="edit_id_area" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
                         </div>
                         <div class="form-group">
-                            <label>Arma</label>
-                            <select id="edit_id_arma" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
+                            <label>Objetivo</label>
+                            <select id="edit_id_objetivo" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                                <option value="">Selecciona un área...</option>
+                            </select>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Arma</label>
+                        <select id="edit_id_arma" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
                     </div>
 
                     <button type="submit" id="btnGuardarEditImpacto" class="btn-submit">Guardar Cambios</button>
@@ -740,6 +747,79 @@
                     </form>
                     <button type="button" id="btnCancelDeleteImpacto" class="btn" style="flex: 1; justify-content: center;">Cancelar</button>
                     <button type="button" id="btnConfirmDeleteImpacto" class="btn btn-danger" style="flex: 1; justify-content: center;">Sí, Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR ARMA -->
+    <div id="modalEditArma" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Armamento</h2>
+                <button id="closeModalEditArma" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit-arma" class="custom-form">
+                    <input type="hidden" id="edit_arma_id" name="id">
+                    <div class="form-group">
+                        <label>Nombre / Identificador</label>
+                        <input type="text" id="edit_nombre_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Clase (Tipo)</label>
+                            <input type="text" id="edit_tipo_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                        </div>
+                        <div class="form-group">
+                            <label>Batería / Grupo</label>
+                            <select id="edit_id_grupo_arma" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Coordenada X</label>
+                            <input type="number" step="any" id="edit_x_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                        </div>
+                        <div class="form-group">
+                            <label>Coordenada Y</label>
+                            <input type="number" step="any" id="edit_y_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="edit_descripcion_arma" rows="3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none; resize: none;"></textarea>
+                    </div>
+
+                    <button type="submit" id="btnGuardarEditArma" class="btn-submit">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ELIMINAR ARMA -->
+    <div id="modalDeleteArma" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; border-bottom: none; margin-bottom: 0;">
+                <h2 style="color: var(--danger); font-size: 1.5rem;">
+                    <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; margin: 0 auto 10px; display: block;" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    Eliminar Armamento
+                </h2>
+            </div>
+            <div class="modal-body" style="padding: 1rem 0 1rem;">
+                <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                    ¿Estás seguro de que deseas eliminar este armamento? Esta acción no se puede deshacer.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <form id="form-delete-arma" style="display: none;">
+                        <input type="hidden" id="delete_arma_id" name="id">
+                    </form>
+                    <button type="button" id="btnCancelDeleteArma" class="btn" style="flex: 1; justify-content: center;">Cancelar</button>
+                    <button type="button" id="btnConfirmDeleteArma" class="btn btn-danger" style="flex: 1; justify-content: center;">Sí, Eliminar</button>
                 </div>
             </div>
         </div>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Impacto Arma - Gestionar Áreas</title>
     @vite('resources/css/app.css')
     <style>
@@ -264,13 +265,56 @@
             border-color: var(--primary);
         }
 
+        .btn-add-objetivo {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.25);
+            padding: 0.4rem 0.8rem;
+        }
+
+        .btn-add-objetivo:hover {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        /* Pestañas de Tabla (Estilo gestionImpactos) */
+        .table-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+        }
+        .tab-item {
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-item:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .tab-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
         /* Área de la tabla */
         .table-container {
             flex: 1;
-            overflow-y: auto;
-            padding: 0 2rem 2rem 2rem;
-            scrollbar-width: thin; /* Firefox */
-            scrollbar-color: rgba(255,255,255,0.15) transparent; /* Firefox */
+            overflow: hidden; /* Cambiado para slider */
+            display: flex;
+            flex-direction: column;
         }
 
         /* Scrollbar oscuro para Chrome/Edge/Safari */
@@ -351,40 +395,6 @@
         ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 4px;
-        }
-        /* ADD FAB (Floating Action Button) */
-        .fab-add {
-            position: fixed; /* Fixed para vistas de tabla */
-            bottom: 2.5rem;
-            right: 2.5rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #60a5fa);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 100;
-        }
-
-        .fab-add:hover {
-            transform: scale(1.08) translateY(-4px);
-            box-shadow: 0 15px 35px -5px rgba(59, 130, 246, 0.6);
-        }
-
-        .fab-add:active {
-            transform: scale(0.95);
-        }
-
-        .fab-add svg {
-            width: 28px;
-            height: 28px;
-            stroke-width: 2.5;
         }
 
         /* MODAL */
@@ -562,7 +572,11 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                         Gestión de Áreas
                     </h1>
-                    <div class="header-actions">
+                    <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
+                        <div class="table-tabs">
+                            <div class="tab-item active" data-value="areas">🗺️ Áreas</div>
+                            <div class="tab-item" data-value="grupos">👥 Grupos</div>
+                        </div>
                         <button class="btn btn-primary" id="btnCrearArea">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Añadir Área
@@ -570,34 +584,69 @@
                     </div>
                 </div>
 
-                <div class="table-container">
-                    <table id="areasTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre del Área</th>
-                                <th>X Objetivo</th>
-                                <th>Y Objetivo</th>
-                                <th style="width: 200px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="areasTableBody">
-                            @foreach ($areas as $area)
-                                <tr>
-                                    <td>{{ $area->id }}</td>
-                                    <td>{{ $area->nombre }}</td>
-                                    <td>{{ $area->x_objetivo }}</td>
-                                    <td>{{ $area->y_objetivo }}</td>
-                                    <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-edit" data-id="{{ $area->id }}">Editar</button>
-                                            <button class="btn btn-danger" data-id="{{ $area->id }}">Eliminar</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="table-container" style="overflow: hidden; width: 100%; flex: 1; position: relative;">
+                    <div class="tables-track" id="tables-track" style="display: flex; transition: transform 0.4s ease; height: 100%; width: 200%;">
+                        
+                        <!-- TABLA ÁREAS -->
+                        <div class="table-wrapper" style="width: 50%; flex: 0 0 50%; height: 100%; overflow: auto; padding: 0 2rem 2rem 2rem; box-sizing: border-box;">
+                            <table id="areasTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre del Área</th>
+                                        <th>Nº Objetivos</th>
+                                        <th style="width: 200px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="areasTableBody">
+                                    @foreach ($areas as $area)
+                                        <tr>
+                                            <td>{{ $area->id }}</td>
+                                            <td>{{ $area->nombre }}</td>
+                                            <td>{{ count($area->objetivos) }}</td>
+                                            <td>
+                                                <div class="td-actions">
+                                                    <button class="btn btn-add-objetivo" data-id="{{ $area->id }}" data-nombre="{{ $area->nombre }}">Objetivos</button>
+                                                    <button class="btn btn-edit" data-id="{{ $area->id }}">Editar</button>
+                                                    <button class="btn btn-danger" data-id="{{ $area->id }}">Eliminar</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- TABLA GRUPOS -->
+                        <div class="table-wrapper" style="width: 50%; flex: 0 0 50%; height: 100%; overflow: auto; padding: 0 2rem 2rem 2rem; box-sizing: border-box;">
+                            <table id="gruposTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre del Grupo</th>
+                                        <th>Descripción</th>
+                                        <th style="width: 150px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gruposTableBody">
+                                    @foreach ($grupos as $grupo)
+                                        <tr>
+                                            <td>{{ $grupo->id }}</td>
+                                            <td>{{ $grupo->nombre }}</td>
+                                            <td>{{ $grupo->descripcion }}</td>
+                                            <td>
+                                                <div class="td-actions">
+                                                    <button class="btn btn-edit-grupo" data-id="{{ $grupo->id }}" data-nombre="{{ $grupo->nombre }}" data-descripcion="{{ $grupo->descripcion }}" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border-color: rgba(59, 130, 246, 0.3); padding: 0.4rem 0.8rem;">Editar</button>
+                                                    <button class="btn btn-danger-grupo" data-id="{{ $grupo->id }}" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); padding: 0.4rem 0.8rem;">Eliminar</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
                 </div>
             </div>
             <!-- BOTÓN AÑADIR (Abajo Derecha) -->
@@ -622,16 +671,6 @@
                     <div class="form-group">
                         <label for="area_nombre">Nombre del Área</label>
                         <input type="text" id="area_nombre" name="nombre" autocomplete="off" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="area_x">X Objetivo</label>
-                            <input type="number" step="any" id="area_x" name="x_objetivo" autocomplete="off" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="area_y">Y Objetivo</label>
-                            <input type="number" step="any" id="area_y" name="y_objetivo" autocomplete="off" required>
-                        </div>
                     </div>
                     
                     <div class="form-group" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
@@ -685,7 +724,86 @@
         </div>
     </div>
     
+    <!-- MODAL GESTIONAR OBJETIVOS -->
+    <div id="modalAddObjetivo" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Objetivos: <span id="nombreAreaObjetivo" style="color:var(--primary);"></span></h2>
+                <button id="closeModalObjetivo" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-objetivo" class="custom-form">
+                    <input type="hidden" id="obj_area_id">
+                    <div class="form-group">
+                        <label>Nombre del Objetivo</label>
+                        <input type="text" id="new_obj_nombre" required placeholder="Ej. Búnker, Silo..." autocomplete="off">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Coordenada X</label>
+                            <input type="number" step="any" id="new_obj_x" required placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Coordenada Y</label>
+                            <input type="number" step="any" id="new_obj_y" required placeholder="0.00">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Guardar Objetivo</button>
+                </form>
+
+                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                    <label>Marcadores Existentes</label>
+                    <div class="vertices-list" id="listaObjetivosExistentes" style="max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.5rem; margin-top: 0.5rem;">
+                        <!-- JS renders row items here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR/EDITAR GRUPO -->
+    <div id="modalGrupo" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalGrupoTitle">Añadir Nuevo Grupo</h2>
+                <button id="closeModalGrupo" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-grupo" class="custom-form">
+                    <input type="hidden" id="grupo_id" name="id">
+                    <div class="form-group">
+                        <label for="grupo_nombre">Nombre del Grupo</label>
+                        <input type="text" id="grupo_nombre" name="nombre" autocomplete="off" required>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="grupo_descripcion">Descripción</label>
+                        <textarea id="grupo_descripcion" name="descripcion" autocomplete="off" rows="3" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; padding: 0.75rem; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" style="margin-top: 1.5rem;">Guardar Grupo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ELIMINAR GRUPO -->
+    <div id="modalDeleteGrupo" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 1rem;">
+                <h2 style="color: var(--danger); font-size: 1.2rem;">Confirmar Eliminación</h2>
+                <button id="closeModalDeleteGrupo" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>¿Estás seguro que deseas eliminar este Grupo?</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                    <button id="btnConfirmDeleteGrupo" class="btn btn-danger" style="flex: 1; justify-content: center;">Eliminar</button>
+                    <button id="btnCancelDeleteGrupo" class="btn" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05);">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @vite('resources/js/gestionarArea.js')
+    @vite('resources/js/gestionarGrupo.js')
     @vite('resources/js/modal.js')
     @vite('resources/js/settings.js')
 </body>

@@ -22,6 +22,7 @@ class ArmaController extends Controller
                     "nombre" => $arma->nombre,
                     "descripcion" => $arma->descripcion,
                     "grupo"=>$arma->grupo->nombre,
+                    "id_grupo"=>$arma->id_grupo,
                     "x"=>$arma->cord_x,
                     "y"=>$arma->cord_y,
                     "tipo"=>$arma->tipo

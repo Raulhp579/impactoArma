@@ -27,7 +27,8 @@ class ImpactoController extends Controller
                     "efectivo" => (bool) $impacto->efectivo,
                     "eficacia" => $impacto->eficacia,
                     "area" => $impacto->area->nombre,
-                    "arma" => $impacto->arma->nombre
+                    "arma" => $impacto->arma->nombre,
+                    "id_objetivo" => $impacto->id_objetivo // <--- Nuevo
                 ];
             });
             return response()->json($impactos_formateados);
@@ -50,8 +51,9 @@ class ImpactoController extends Controller
             $impacto->y_impacto = $request->y_impacto;
             $impacto->momento_impacto = $request->momento_impacto;
             $impacto->id_area = $request->id_area;
+            $impacto->id_objetivo = $request->id_objetivo; // <--- Nuevo
 
-            $area = Area::where("id", $request->id_area)->first();
+            $area = Area::with('objetivos')->where("id", $request->id_area)->first();
             if (!$area) {
                 throw new Exception("Área no encontrada.");
             }
@@ -67,10 +69,23 @@ class ImpactoController extends Controller
             // 3. Calcular Eficacia (%) - Haversine en Lat/Lon (metros reales)
             // Solo tiene eficacia si tambien es efectivo
             if ($impacto->efectivo) {
-                $distanciaMetros = $this->getHaversineDistance(
-                    $area->x_objetivo, $area->y_objetivo,
-                    $impLat, $impLon
-                );
+                $distanciaMetros = null;
+
+                if ($request->id_objetivo) {
+                    $obj = \App\Models\ObjetivoArea::find($request->id_objetivo);
+                    if ($obj) {
+                        $distanciaMetros = $this->getHaversineDistance($obj->x_zona, $obj->y_zona, $impLat, $impLon);
+                    }
+                } else {
+                    foreach ($area->objetivos as $obj) {
+                        $d = $this->getHaversineDistance($obj->x_zona, $obj->y_zona, $impLat, $impLon);
+                        if ($distanciaMetros === null || $d < $distanciaMetros) {
+                            $distanciaMetros = $d;
+                        }
+                    }
+                }
+
+                if ($distanciaMetros === null) $distanciaMetros = 999999;
                 $radioEficaciaM = 100;
                 if ($distanciaMetros <= $radioEficaciaM) {
                     $porcentaje = 100 * (1 - ($distanciaMetros / $radioEficaciaM));
@@ -114,7 +129,8 @@ class ImpactoController extends Controller
                 "efectivo" => (bool) $impacto->efectivo,
                 "eficacia" => $impacto->eficacia,
                 "area" => $impacto->area->nombre,
-                "arma" => $impacto->arma->nombre
+                "arma" => $impacto->arma->nombre,
+                "id_objetivo" => $impacto->id_objetivo // <--- Nuevo
             ];
             return response()->json($impacto_formateado);
         }catch(Exception $e){
@@ -136,8 +152,9 @@ class ImpactoController extends Controller
             $impacto->y_impacto = $request->y_impacto;
             $impacto->momento_impacto = $request->momento_impacto;
             $impacto->id_area = $request->id_area;
+            $impacto->id_objetivo = $request->id_objetivo; // <--- Nuevo
             
-            $area = Area::where("id", $request->id_area)->first();
+            $area = Area::with('objetivos')->where("id", $request->id_area)->first();
             if ($area) {
                 // 1. Coordenadas ya en Lat/Lon
                 $impLat = (float) $request->x_impacto;
@@ -149,10 +166,23 @@ class ImpactoController extends Controller
 
                 // 3. Calcular Eficacia - solo si es efectivo
                 if ($impacto->efectivo) {
-                    $distanciaMetros = $this->getHaversineDistance(
-                        $area->x_objetivo, $area->y_objetivo,
-                        $impLat, $impLon
-                    );
+                    $distanciaMetros = null;
+
+                    if ($request->id_objetivo) {
+                        $obj = \App\Models\ObjetivoArea::find($request->id_objetivo);
+                        if ($obj) {
+                            $distanciaMetros = $this->getHaversineDistance($obj->x_zona, $obj->y_zona, $impLat, $impLon);
+                        }
+                    } else {
+                        foreach ($area->objetivos as $obj) {
+                            $d = $this->getHaversineDistance($obj->x_zona, $obj->y_zona, $impLat, $impLon);
+                            if ($distanciaMetros === null || $d < $distanciaMetros) {
+                                $distanciaMetros = $d;
+                            }
+                        }
+                    }
+
+                    if ($distanciaMetros === null) $distanciaMetros = 999999;
                     $radioEficaciaM = 100;
                     if ($distanciaMetros <= $radioEficaciaM) {
                         $porcentaje = 100 * (1 - ($distanciaMetros / $radioEficaciaM));

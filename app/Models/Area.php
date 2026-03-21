@@ -17,5 +17,10 @@ class Area extends Model
     {
         return $this->hasMany(Vertice::class, 'id_area');
     }
+
+    public function objetivos()
+    {
+        return $this->hasMany(ObjetivoArea::class, 'id_area');
+    }
 }
   
