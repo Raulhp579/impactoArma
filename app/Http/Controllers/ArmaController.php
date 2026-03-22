@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arma;
+use App\Models\ConfigMapa;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -21,8 +22,6 @@ class ArmaController extends Controller
                     "id" => $arma->id,
                     "nombre" => $arma->nombre,
                     "descripcion" => $arma->descripcion,
-                    "grupo"=>$arma->grupo->nombre,
-                    "id_grupo"=>$arma->id_grupo,
                     "x"=>$arma->cord_x,
                     "y"=>$arma->cord_y,
                     "tipo"=>$arma->tipo
@@ -44,9 +43,22 @@ class ArmaController extends Controller
     {
         try{
             $arma = new Arma();
-            $arma->nombre = $request->nombre;
+            $config = ConfigMapa::first();
+            if (!$config) {
+                throw new Exception("No existe configuración de mapa. Crea una antes de registrar armas.");
+            }
+            $prefijo = $config->prefijo_nombre_boca;
+            $numero = $config->numero_boca_inicial;
+
+            $ultima_arma = Arma::latest()->first();
+            if (!$ultima_arma) {
+                $arma->nombre = $prefijo . $numero;
+            } else {
+                $ultimo_numero = (int) str_replace($prefijo, '', $ultima_arma->nombre);
+                $arma->nombre = $prefijo . ($ultimo_numero + 1);
+            }
+
             $arma->descripcion = $request->descripcion;
-            $arma->id_grupo = $request->id_grupo;
             $arma->cord_x = $request->cord_x;
             $arma->cord_y = $request->cord_y;
             $arma->tipo = $request->tipo;
@@ -71,7 +83,6 @@ class ArmaController extends Controller
                 "id" => $arma->id,
                 "nombre" => $arma->nombre,
                 "descripcion" => $arma->descripcion,
-                "grupo"=>$arma->grupo->nombre,
                 "x"=>$arma->cord_x,
                 "y"=>$arma->cord_y,
                 "tipo"=>$arma->tipo
@@ -93,7 +104,6 @@ class ArmaController extends Controller
             $arma = Arma::find($id);
             $arma->nombre = $request->nombre;
             $arma->descripcion = $request->descripcion;
-            $arma->id_grupo = $request->id_grupo;
             $arma->cord_x = $request->cord_x;
             $arma->cord_y = $request->cord_y;
             $arma->tipo = $request->tipo;

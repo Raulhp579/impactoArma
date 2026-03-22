@@ -1,11 +1,36 @@
 import proj4 from 'proj4';
 
-const UTM_ZONES = {
-    'ES': "+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
-    'LV': "+proj=utm +zone=35 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-};
+
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- CARGAR CONFIGURACIÓN MAPA ---
+    let configMapaGlobal = null;
+    async function cargarConfiguracionMapa() {
+        try {
+            const response = await fetch('/api/config_mapa');
+            const data = await response.json();
+            if (data && data.length > 0) {
+                configMapaGlobal = data[0];
+                if (window.updateCoordLabels) window.updateCoordLabels(); // <--- Actualizar labels
+            }
+        } catch (error) {
+            console.error("Error cargando configuración mapa:", error);
+        }
+    }
+    cargarConfiguracionMapa();
+
+    // --- MANEJAR BOTONES DE CLASE ---
+    document.querySelectorAll('.btn-clase').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.btn-clase').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const valClase = document.getElementById('val-clase');
+            if (valClase) {
+                valClase.value = btn.getAttribute('data-value');
+            }
+        });
+    });
+
     // ============================================
     // DOM ELEMENTS - MODAL
     // ============================================
@@ -84,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.updateCoordLabels = function() {
-        const type = document.getElementById('val-coord-type')?.value || 'geo';
+        const type = configMapaGlobal?.sistemaCoordenadas?.toLowerCase() || 'geo';
         const lblX = document.getElementById('lbl-x');
         const lblY = document.getElementById('lbl-y');
         const inpX = document.getElementById('val-x');
@@ -123,11 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             selectElement.innerHTML = '<option value="">Seleccione una opción</option>';
             items.forEach(item => {
-                // Priorizar nombre, luego tipo, luego ID
                 const text = item.nombre ? item.nombre : (item.tipo ? `${item.tipo} - ID: ${item.id}` : `ID: ${item.id}`);
                 const option = document.createElement("option");
                 option.value = item.id;
                 option.textContent = text;
+                if (item.id_area) {
+                    option.setAttribute('data-id_area', item.id_area);
+                }
                 selectElement.appendChild(option);
             });
         } catch (error) {
@@ -136,39 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Inicializar selects
-    loadSelectOptions('#val-area', '/api/areas');
+    loadSelectOptions('#val-objetivo', '/api/objetivos_area');
     loadSelectOptions('#val-arma', '/api/armas');
-    loadSelectOptions('#val-grupo', '/api/grupos');
-
-    // Cargar objetivos dinámicamente según área (Añadir)
-    const valArea = document.getElementById('val-area');
-    if (valArea) {
-        valArea.addEventListener('change', async (e) => {
-            const areaId = e.target.value;
-            const valObjetivo = document.getElementById('val-objetivo');
-            if (!valObjetivo) return;
-
-            if (!areaId) {
-                valObjetivo.innerHTML = '<option value="">Selecciona un área...</option>';
-                return;
-            }
-
-            valObjetivo.innerHTML = '<option value="">Cargando objetivos...</option>';
-            try {
-                const response = await fetch(`/api/areas/${areaId}`);
-                const data = await response.json();
-                const objetivos = data.objetivos || [];
-
-                valObjetivo.innerHTML = '<option value="">Seleccione un objetivo</option>';
-                objetivos.forEach(obj => {
-                    const option = document.createElement("option");
-                    option.value = obj.id;
-                    option.textContent = obj.nombre || `Objetivo ID: ${obj.id}`;
-                    valObjetivo.appendChild(option);
-                });
-            } catch (error) { console.error(error); }
-        });
-    }
 
     // ============================================
     // CONFIRMAR REGISTRO (Guardar en API)
@@ -177,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = document.getElementById('val-tipo').value;
         let x = document.getElementById('val-x').value;
         let y = document.getElementById('val-y').value;
-        const coordType = document.getElementById('val-coord-type')?.value || 'geo';
+        const coordType = configMapaGlobal?.sistemaCoordenadas?.toLowerCase() || 'geo';
 
         if (!x || !y) {
             alert("Las coordenadas son obligatorias.");
@@ -186,22 +182,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Conversión UTM -> Geográficas si es necesario (por dropdown o auto-detección de valores altos)
         if (coordType === 'utm' || Math.abs(x) > 180 || Math.abs(y) > 180) {
+            if (!configMapaGlobal) {
+                alert("Esperando configuración del mapa de la base de datos...");
+                return;
+            }
             try {
                 const easting = parseFloat(x);
                 const northing = parseFloat(y);
                 if (isNaN(easting) || isNaN(northing)) throw new Error("Coordenadas no numéricas");
 
-                // Obtener el EPSG string basado en el país seleccionado
-                const countryCode = document.getElementById('utm_country_modal')?.value || 'ES';
-                const EPSG_STRING = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                const huso = configMapaGlobal.huso || '30';
+                const hemisferio = configMapaGlobal.hemisferio == 1 || configMapaGlobal.hemisferio === true ? '' : '+south ';
+                const EPSG_STRING = `+proj=utm +zone=${huso} ${hemisferio}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
 
-                // Proj4 espera [X, Y] (Easting, Northing)
-                // Devuelve [Lon, Lat]
                 const [lon, lat] = proj4(EPSG_STRING, "EPSG:4326", [easting, northing]);
                 
-                x = lat; // Latitud (X en backend)
-                y = lon; // Longitud (Y en backend)
-                console.log(`UTM Convertido: [${easting}, ${northing}] -> [${lat}, ${lon}]`);
+                x = lat; 
+                y = lon; 
+                console.log(`UTM Convertido (${huso}): [${easting}, ${northing}] -> [${lat}, ${lon}]`);
             } catch (e) {
                 console.error("Error Proj4 UTM:", e);
                 alert("Error en coordenadas UTM: " + e.message);
@@ -215,12 +213,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (tipo === 'impacto') {
             const momento = document.getElementById('val-momento').value;
-            const area = document.getElementById('val-area').value;
-            const objetivo = document.getElementById('val-objetivo')?.value; // <--- Nuevo
+            const objetivoSelect = document.getElementById('val-objetivo');
+            const objetivo = objetivoSelect?.value;
+            // Forma más robusta de obtener la opción seleccionada
+            const optionSeleccionada = objetivoSelect ? objetivoSelect.querySelector('option:checked') : null;
+            const area = optionSeleccionada?.getAttribute('data-id_area');
             const arma = document.getElementById('val-arma').value;
 
+            console.log("FINALIZAR IMPACTO:", { momento, objetivo, area, arma });
+
             if (!momento || !area || !arma) {
-                alert("Campos obligatorios de Impacto incompletos.");
+                alert(`Campos obligatorios de Impacto incompletos:\n- Momento: ${momento ? '✓' : 'Falta'}\n- Objetivo: ${objetivo ? '✓' : 'Falta'}\n- Área (Deducida): ${area ? '✓' : 'No asociada al objetivo'}\n- Boca de fuego: ${arma ? '✓' : 'Falta'}`);
                 return;
             }
 
@@ -234,23 +237,19 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             endpoint = '/api/impactos';
         } else {
-            const nombre = document.getElementById('val-nombre').value;
-            const descripcion = document.getElementById('val-descripcion')?.value || ""; // <--- Nuevo
+            const descripcion = document.getElementById('val-descripcion')?.value || ""; 
             const clase = document.getElementById('val-clase').value;
-            const grupo = document.getElementById('val-grupo').value;
 
-            if (!nombre || !clase) {
-                alert("Nombre y Clase de Arma son obligatorios.");
+            if (!clase) {
+                alert("La Clase de Arma es obligatoria.");
                 return;
             }
 
             datos = {
-                nombre: nombre,
-                descripcion: descripcion, // <--- Nuevo
+                descripcion: descripcion,
                 tipo: clase,
                 cord_x: x,
-                cord_y: y,
-                id_grupo: grupo
+                cord_y: y
             };
             endpoint = '/api/armas';
         }

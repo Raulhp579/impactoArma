@@ -18,10 +18,7 @@ return new class extends Migration
             $table->string("descripcion")->nullable();
             $table->bigInteger("cord_x")->nullable();
             $table->bigInteger("cord_y")->nullable();
-            $table->unsignedBigInteger("id_grupo");
             $table->timestamps();
-
-            $table->foreign("id_grupo")->references("id")->on("grupos")->onDelete("cascade")->onUpdate("cascade");
         });
     }
 

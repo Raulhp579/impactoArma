@@ -503,6 +503,43 @@
             z-index: 10;
             box-shadow: -2px 0 10px rgba(0,0,0,0.2);
             transition: transform 0.3s ease;
+            position: relative; /* Para el resize handle */
+        }
+
+        .sidebar-resize-handle {
+            position: absolute;
+            top: 0;
+            left: -3px;
+            width: 8px; /* Un poco más ancho para interactuar mejor */
+            height: 100%;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 20;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-resize-handle::after {
+            content: '';
+            width: 4px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 0 4px rgba(0,0,0,0.4);
+        }
+
+        .sidebar-resize-handle:hover::after, .sidebar-resize-handle.resizing::after {
+            background: #3b82f6; /* Azul primario */
+            height: 60px;
+            width: 5px;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+        }
+
+        .sidebar-resize-handle:hover, .sidebar-resize-handle.resizing {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .sidebar-right-header {
@@ -780,12 +817,12 @@
                 </button>
                 
                 <!-- 3. Gestionar Áreas -->
-                <button class="icon-btn" data-tooltip="Gestionar Áreas" onclick="window.location.href='{{ url('/gestionar-areas') }}'">
+                <button class="icon-btn" data-tooltip="Gestor de Planeamiento" onclick="window.location.href='{{ url('/gestionar-areas') }}'">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                 </button>
                 
                 <!-- 4. Gestionar Impactos -->
-                <button class="icon-btn" data-tooltip="Gestionar Impactos" onclick="window.location.href='{{ url('/gestion-impactos') }}'">
+                <button class="icon-btn" data-tooltip="Calificador de Tiro" onclick="window.location.href='{{ url('/gestion-impactos') }}'">
                     <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
                 </button>
             </div>

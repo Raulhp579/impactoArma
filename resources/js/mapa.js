@@ -433,4 +433,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderList();
     }
+
+    // --- Lógica de Resizing Sidebar ---
+    const sidebar = document.getElementById('sidebar-right');
+    if (sidebar) {
+        const handle = document.createElement('div');
+        handle.className = 'sidebar-resize-handle';
+        sidebar.appendChild(handle);
+
+        let isResizing = false;
+
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            handle.classList.add('resizing');
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const newWidth = window.innerWidth - e.clientX;
+            // Límites de Redimensión
+            if (newWidth > 200 && newWidth < 600) {
+                sidebar.style.width = `${newWidth}px`;
+                sidebar.style.minWidth = `${newWidth}px`; // Asegurar el tamaño
+                map.invalidateSize(); // Forzar Leaflet
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = 'default';
+                document.body.style.userSelect = '';
+                handle.classList.remove('resizing');
+                map.invalidateSize();
+            }
+        });
+    }
 });

@@ -18,14 +18,14 @@ return new class extends Migration
             $table->dateTime("momento_impacto");
             $table->boolean("efectivo")->default(false);
             $table->double("eficacia")->nullable();
-            $table->unsignedBigInteger("id_area");
-            $table->unsignedBigInteger("id_objetivo");
-            $table->unsignedBigInteger("id_arma");
+            $table->unsignedBigInteger("id_area")->nullable();
+            $table->unsignedBigInteger("id_objetivo")->nullable();
+            $table->unsignedBigInteger("id_arma")->nullable();
             $table->timestamps();
 
-            $table->foreign("id_area")->references("id")->on("areas")->onDelete("cascade")->onUpdate("cascade");
-            $table->foreign("id_arma")->references("id")->on("armas")->onDelete("cascade")->onUpdate("cascade");
-            $table->foreign("id_objetivo")->references("id")->on("objetivos_area")->onDelete("cascade")->onUpdate("cascade");
+            $table->foreign("id_area")->references("id")->on("areas");
+            $table->foreign("id_arma")->references("id")->on("armas");
+            $table->foreign("id_objetivo")->references("id")->on("objetivos_area");
         });
     }
 

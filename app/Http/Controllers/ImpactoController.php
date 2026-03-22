@@ -7,6 +7,7 @@ use App\Models\Area;
 use App\Models\Vertice;
 use App\Models\Impacto;
 use Exception;
+use Illuminate\Console\Scheduling\Event;
 use Illuminate\Http\Request;
 
 class ImpactoController extends Controller
@@ -228,6 +229,8 @@ class ImpactoController extends Controller
 
             $impacto->id_arma = $request->id_arma;
             $impacto->save();
+
+            Event(new ImpactoFallido($impacto));
             return response()->json([
                 "message" => "Impacto actualizado exitosamente",
                 "impacto" => $impacto

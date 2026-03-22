@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Impacto Arma - Gestionar Áreas</title>
+    <title>Impacto Arma - Gestor de Planeamiento</title>
     @vite('resources/css/app.css')
     <style>
         :root {
@@ -584,12 +584,12 @@
                 </button>
                 
                 <!-- 3. Gestionar Áreas -->
-                <button class="icon-btn active" data-tooltip="Gestionar Áreas">
+                <button class="icon-btn active" data-tooltip="Gestor de planeamiento">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                 </button>
                 
                 <!-- 4. Gestionar Impactos -->
-                <button class="icon-btn" data-tooltip="Gestionar Impactos" onclick="window.location.href='{{ url('/gestion-impactos') }}'">
+                <button class="icon-btn" data-tooltip="Calificador de Tiro" onclick="window.location.href='{{ url('/gestion-impactos') }}'">
                     <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
                 </button>
             </div>
@@ -608,17 +608,17 @@
                 <div class="header">
                     <h1>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                        Gestión de Áreas
+                        Área de Planeamiento
                     </h1>
                     <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
-                        <div class="table-tabs">
-                            <div class="tab-item active" data-value="areas">🗺️ Áreas</div>
-                            <div class="tab-item" data-value="grupos">👥 Grupos</div>
-                        </div>
                         <button class="btn btn-primary" id="btnCrearArea">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Añadir Área
                         </button>
+                        <div class="table-tabs">
+                            <div class="tab-item active" data-value="areas">🗺️ Áreas</div>
+                            <div class="tab-item" data-value="datosGeograficos">🌍 Datos Geográficos</div>
+                        </div>
                     </div>
                 </div>
 
@@ -655,34 +655,56 @@
                             </table>
                         </div>
 
-                        <!-- TABLA GRUPOS -->
+                        <!-- FORMULARIO DATOS GEOGRÁFICOS -->
                         <div class="table-wrapper" style="width: 50%; flex: 0 0 50%; height: 100%; overflow: auto; padding: 0 2rem 2rem 2rem; box-sizing: border-box;">
-                            <table id="gruposTable">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre del Grupo</th>
-                                        <th>Descripción</th>
-                                        <th style="width: 150px;">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="gruposTableBody">
-                                    @foreach ($grupos as $grupo)
-                                        <tr>
-                                            <td>{{ $grupo->id }}</td>
-                                            <td>{{ $grupo->nombre }}</td>
-                                            <td>{{ $grupo->descripcion }}</td>
-                                            <td>
-                                                <div class="td-actions">
-                                                    <button class="btn btn-edit-grupo" data-id="{{ $grupo->id }}" data-nombre="{{ $grupo->nombre }}" data-descripcion="{{ $grupo->descripcion }}" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border-color: rgba(59, 130, 246, 0.3); padding: 0.4rem 0.8rem;">Editar</button>
-                                                    <button class="btn btn-danger-grupo" data-id="{{ $grupo->id }}" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); padding: 0.4rem 0.8rem;">Eliminar</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; max-width: 600px; margin: 2rem auto;">
+                                <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 0 4 10 15.3 15.3 0 0 0-4 10M12 2a15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4 10"></path></svg>
+                                    Configuración del Mapa
+                                </h2>
+                                
+                                <form id="form-config-mapa" class="custom-form">
+                                    <input type="hidden" id="config_id">
+                                    
+                                    <div class="form-group">
+                                        <label for="config_sistema">Sistema de Coordenadas</label>
+                                        <select id="config_sistema" class="form-control" required style="width: 100%;">
+                                            <option value="UTM">UTM (Universal Transverse Mercator)</option>
+                                            <option value="GEO">Geográficas (Latitud/Longitud)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group" style="flex: 1;">
+                                            <label for="config_huso">Huso / Zona (UTM)</label>
+                                            <input type="text" id="config_huso" placeholder="Ej. 30, 35..." class="form-control">
+                                        </div>
+                                        <div class="form-group" style="flex: 1;">
+                                            <label for="config_hemisferio">Hemisferio</label>
+                                            <select id="config_hemisferio" class="form-control">
+                                                <option value="1">Norte</option>
+                                                <option value="0">Sur</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row" style="margin-top: 15px;">
+                                        <div class="form-group" style="flex: 1;">
+                                            <label for="config_prefijo_boca">Prefijo Nombre Boca (Arma)</label>
+                                            <input type="text" id="config_prefijo_boca" placeholder="Ej. Boca, Cañón..." class="form-control" style="width: 100%;">
+                                        </div>
+                                        <div class="form-group" style="flex: 1;">
+                                            <label for="config_numero_boca">Nº Inicial</label>
+                                            <input type="number" id="config_numero_boca" placeholder="Ej. 1" class="form-control" style="width: 100%;">
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn-submit" style="margin-top: 1rem;">Guardar Configuración</button>
+                                </form>
+                            </div>
                         </div>
+
+
 
                     </div>
                 </div>
@@ -719,12 +741,6 @@
                             </div>
                             <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                 <input type="number" step="any" id="vertice_y" placeholder="Coord Y" autocomplete="off" style="font-size: 0.85rem;">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 0; flex: 1.2;">
-                                <select id="utm_country_vertices" class="form-control" style="font-size: 0.85rem;">
-                                    <option value="ES">España (30N)</option>
-                                    <option value="LV">Letonia (35V)</option>
-                                </select>
                             </div>
                             <button type="button" id="btnAnyadirVertice" class="btn" style="min-width: 44px; display: flex; align-items: center; justify-content: center; padding: 0; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; align-self: stretch;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -791,13 +807,6 @@
                             <label>Coordenada Y</label>
                             <input type="number" step="any" id="new_obj_y" required placeholder="0.00">
                         </div>
-                        <div class="form-group" style="flex: 1.2;">
-                            <label>País UTM</label>
-                            <select id="utm_country_objetivos" class="form-control">
-                                <option value="ES">España (30N)</option>
-                                <option value="LV">Letonia (35V)</option>
-                            </select>
-                        </div>
                     </div>
                     <button type="submit" class="btn-submit">Guardar Objetivo</button>
                 </form>
@@ -812,49 +821,10 @@
         </div>
     </div>
 
-    <!-- MODAL CREAR/EDITAR GRUPO -->
-    <div id="modalGrupo" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalGrupoTitle">Añadir Nuevo Grupo</h2>
-                <button id="closeModalGrupo" class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="form-grupo" class="custom-form">
-                    <input type="hidden" id="grupo_id" name="id">
-                    <div class="form-group">
-                        <label for="grupo_nombre">Nombre del Grupo</label>
-                        <input type="text" id="grupo_nombre" name="nombre" autocomplete="off" required>
-                    </div>
-                    <div class="form-group" style="margin-top: 1rem;">
-                        <label for="grupo_descripcion">Descripción</label>
-                        <textarea id="grupo_descripcion" name="descripcion" autocomplete="off" rows="3" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; padding: 0.75rem; font-family: inherit; resize: vertical;"></textarea>
-                    </div>
-                    <button type="submit" class="btn-submit" style="margin-top: 1.5rem;">Guardar Grupo</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- MODAL ELIMINAR GRUPO -->
-    <div id="modalDeleteGrupo" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 1rem;">
-                <h2 style="color: var(--danger); font-size: 1.2rem;">Confirmar Eliminación</h2>
-                <button id="closeModalDeleteGrupo" class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body" style="text-align: center;">
-                <p>¿Estás seguro que deseas eliminar este Grupo?</p>
-                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
-                    <button id="btnConfirmDeleteGrupo" class="btn btn-danger" style="flex: 1; justify-content: center;">Eliminar</button>
-                    <button id="btnCancelDeleteGrupo" class="btn" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05);">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     @vite('resources/js/gestionarArea.js')
-    @vite('resources/js/gestionarGrupo.js')
+
     @vite('resources/js/modal.js')
     @vite('resources/js/settings.js')
     @vite('resources/js/echo.js')

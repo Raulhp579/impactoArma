@@ -14,17 +14,12 @@ class Arma extends Model
         "descripcion",
         "cord_x",
         "cord_y",
-        "id_grupo",
     ];
-
-    public function grupo()
-    {
-        return $this->belongsTo(Grupo::class, "id_grupo");
-    }
 
     public function impactos()
     {
         return $this->hasMany(Impacto::class, "id_arma");
     }
+
     
 }

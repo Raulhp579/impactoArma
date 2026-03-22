@@ -1,10 +1,30 @@
 import proj4 from 'proj4';
-const UTM_ZONES = {
-    'ES': "+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
-    'LV': "+proj=utm +zone=35 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-};
+
 
 document.addEventListener("DOMContentLoaded", () => {
+    // --- VARIABLE GLOBAL CONFIGURACIÓN ---
+    let configMapaGlobal = null;
+
+    function formatCoords(x, y) {
+        if (!x || !y) return "N/A";
+        if (configMapaGlobal && configMapaGlobal.sistemaCoordenadas === "UTM") {
+            const huso = configMapaGlobal.huso || "30";
+            const hemisferio = configMapaGlobal.hemisferio === 1 || configMapaGlobal.hemisferio === true ? 'N' : 'S';
+            
+            const utmProj = `+proj=utm +zone=${huso} +${hemisferio === 'N' ? 'north' : 'south'} +ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
+            const geoProj = "+proj=longlat +datum=WGS84 +no_defs";
+
+            try {
+                // proj4 convierte [Lon, Lat] a [E, N]
+                const [easting, northing] = proj4(geoProj, utmProj, [parseFloat(y), parseFloat(x)]);
+                return `${Math.round(easting)} / ${Math.round(northing)} (UTM ${huso}${hemisferio})`;
+            } catch (e) {
+                console.error(e);
+                return `${x} / ${y}`; 
+            }
+        }
+        return `${parseFloat(x).toFixed(5)} / ${parseFloat(y).toFixed(5)}`; 
+    }
     // ----------------------------------------
     // ELEMENTOS MODAL CREAR/EDITAR
     // ----------------------------------------
@@ -40,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const div = document.createElement("div");
                         div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; background: rgba(255,255,255,0.02); margin-bottom: 3px; border-radius: 4px;";
                         div.innerHTML = `
-                            <span><b style="color:var(--primary);">${o.nombre || 'Objetivo'}:</b> X:${o.x_zona} Y:${o.y_zona}</span>
+                            <span><b style="color:var(--primary);">${o.nombre || 'Objetivo'}:</b> ${formatCoords(o.x_zona, o.y_zona)}</span>
                             <button type="button" class="btn-delete-obj" data-id="${o.id}" style="background:transparent; border:none; color:var(--danger); cursor:pointer; display:flex; align-items:center; gap:4px; font-size:0.8rem; padding:2px 4px;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/></svg>
                                 Borrar
@@ -100,9 +120,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Auto-detectar UTM (si los valores son mayores a 180)
             if (Math.abs(x) > 180 || Math.abs(y) > 180) {
+                if (!configMapaGlobal) {
+                    alert("Esperando configuración del mapa de la base de datos...");
+                    return;
+                }
                 try {
-                    const countryCode = document.getElementById('utm_country_vertices')?.value || 'ES';
-                    const EPSG_STRING = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                    const huso = configMapaGlobal.huso || '30';
+                    const hemisferio = configMapaGlobal.hemisferio == 1 || configMapaGlobal.hemisferio === true ? '' : '+south ';
+                    const EPSG_STRING = `+proj=utm +zone=${huso} ${hemisferio}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
+
                     const [lon, lat] = proj4(EPSG_STRING, "EPSG:4326", [x, y]);
                     x = lat;
                     y = lon;
@@ -337,9 +363,15 @@ document.addEventListener("DOMContentLoaded", () => {
             let yObj = parseFloat(inputNewObjY.value);
 
             if (Math.abs(xObj) > 180 || Math.abs(yObj) > 180) {
+                if (!configMapaGlobal) {
+                    alert("Esperando configuración del mapa de la base de datos...");
+                    return;
+                }
                 try {
-                    const countryCode = document.getElementById('utm_country_objetivos')?.value || 'ES';
-                    const EPSG_STRING = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                    const huso = configMapaGlobal.huso || '30';
+                    const hemisferio = configMapaGlobal.hemisferio == 1 || configMapaGlobal.hemisferio === true ? '' : '+south ';
+                    const EPSG_STRING = `+proj=utm +zone=${huso} ${hemisferio}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
+
                     const [lon, lat] = proj4(EPSG_STRING, "EPSG:4326", [xObj, yObj]);
                     xObj = lat;
                     yObj = lon;
@@ -391,6 +423,107 @@ document.addEventListener("DOMContentLoaded", () => {
                         cargarObjetivosExistentes(idArea); 
                     }
                 } catch (error) { console.error(error); }
+            }
+        });
+    }
+
+    // ----------------------------------------
+    // CONFIGURACIÓN DATOS GEOGRÁFICOS
+    // ----------------------------------------
+    const tablesTrack = document.getElementById('tables-track');
+    const tabItems = document.querySelectorAll('.tab-item');
+    const btnCrearAreaHeader = document.getElementById('btnCrearArea');
+
+    if (tabItems && tablesTrack) {
+        tabItems.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const value = tab.getAttribute('data-value');
+                
+                tabItems.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                if (tablesTrack) {
+                    tablesTrack.style.transform = value === 'datosGeograficos' ? 'translateX(-50%)' : 'translateX(0%)';
+                }
+
+                // Ocultar botón "Añadir Área" si estamos en Datos Geográficos
+                if (btnCrearAreaHeader) {
+                    btnCrearAreaHeader.style.display = value === 'datosGeograficos' ? 'none' : 'flex';
+                }
+            });
+        });
+    }
+
+    // --- CARGAR CONFIGURACIÓN ---
+    const formConfig = document.getElementById('form-config-mapa');
+    const configIdInput = document.getElementById('config_id');
+    const configSistema = document.getElementById('config_sistema');
+    const configHuso = document.getElementById('config_huso');
+    const configHemisferio = document.getElementById('config_hemisferio');
+    const configPrefijoBoca = document.getElementById('config_prefijo_boca');
+    const configNumeroBoca = document.getElementById('config_numero_boca');
+
+    async function cargarConfiguracion() {
+        try {
+            const response = await fetch('/api/config_mapa');
+            const data = await response.json();
+            
+            // Si hay datos (data es un array), tomar el primero
+            if (data && data.length > 0) {
+                const config = data[0];
+                configMapaGlobal = config; // <--- Asignar para uso general
+                if (configIdInput) configIdInput.value = config.id;
+                if (configSistema) configSistema.value = config.sistemaCoordenadas || "UTM";
+                if (configHuso) configHuso.value = config.huso || "";
+                if (configHemisferio) configHemisferio.value = config.hemisferio ? "1" : "0";
+                if (configPrefijoBoca) configPrefijoBoca.value = config.prefijo_nombre_boca || "";
+                if (configNumeroBoca) configNumeroBoca.value = config.numero_boca_inicial || "";
+            }
+        } catch (error) {
+            console.error("Error cargando configuración:", error);
+        }
+    }
+
+    if (formConfig) {
+        cargarConfiguracion();
+
+        formConfig.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = configIdInput ? configIdInput.value : null;
+            const datos = {
+                sistemaCoordenadas: configSistema ? configSistema.value : "UTM",
+                huso: configHuso ? configHuso.value : "",
+                hemisferio: configHemisferio ? (configHemisferio.value === "1") : true,
+                prefijo_nombre_boca: configPrefijoBoca ? configPrefijoBoca.value : "",
+                numero_boca_inicial: configNumeroBoca && configNumeroBoca.value ? parseInt(configNumeroBoca.value) : null
+            };
+
+            const url = id ? `/api/config_mapa/${id}` : '/api/config_mapa';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                if (response.ok) {
+                    alert("Configuración guardada correctamente.");
+                    if (!id) {
+                        cargarConfiguracion(); // Recargar para obtener el ID
+                    }
+                } else {
+                    const err = await response.json();
+                    alert("Error al guardar: " + (err.message || response.statusText));
+                }
+            } catch (error) {
+                console.error("Error guardando configuración:", error);
+                alert("Error de conexión");
             }
         });
     }

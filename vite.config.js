@@ -11,9 +11,9 @@ export default defineConfig({
                 'resources/js/mapa.js',
                 'resources/js/gestionarArea.js',
                 'resources/js/gestionImpacto.js',
-                'resources/js/gestionarGrupo.js',
                 'resources/js/modal.js',
-                'resources/js/settings.js'
+                'resources/js/settings.js',
+                'resources/js/echo.js',
             ],
             refresh: true,
         }),

@@ -556,12 +556,12 @@
                 </button>
                 
                 <!-- 3. Gestionar Áreas -->
-                <button class="icon-btn" data-tooltip="Gestionar Áreas" onclick="window.location.href='{{ url('/gestionar-areas') }}'">
+                <button class="icon-btn" data-tooltip="Gestor de Planeamiento" onclick="window.location.href='{{ url('/gestionar-areas') }}'">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                 </button>
                 
                 <!-- 4. Gestionar Impactos -->
-                <button class="icon-btn active" data-tooltip="Gestionar Impactos">
+                <button class="icon-btn active" data-tooltip="Calificador de Tiro">
                     <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
                 </button>
             </div>
@@ -580,13 +580,20 @@
                 <div class="header">
                     <h1>
                         <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
-                        Gestión de Impactos
+                        Calificador de Tiro
                     </h1>
                     <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
                         <select id="filter-eficacia" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; border-radius: 8px; padding: 0.6rem 2.5rem 0.6rem 1rem; outline: none; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22white%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: center; font-family: inherit; font-size: 0.9rem;">
                             <option value="" style="background: #1a1a1a;">Filtro Efectividad: Todos</option>
                             <option value="Efectivo" style="background: #1a1a1a;">Efectivo</option>
                             <option value="Fallido" style="background: #1a1a1a;">Fallido</option>
+                        </select>
+                        <select id="filter-tipo" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; border-radius: 8px; padding: 0.6rem 2.5rem 0.6rem 1rem; outline: none; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22white%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: center; font-family: inherit; font-size: 0.9rem; display: none;">
+                            <option value="" style="background: #1a1a1a;">Filtro Tipo: Todos</option>
+                            <option value="Ligera" style="background: #1a1a1a;">Ligera</option>
+                            <option value="Pesada" style="background: #1a1a1a;">Pesada</option>
+                            <option value="Mortero" style="background: #1a1a1a;">Mortero</option>
+                            <option value="Lanzacohete" style="background: #1a1a1a;">Lanzacohete</option>
                         </select>
 
                         <div class="table-tabs">
@@ -654,7 +661,6 @@
                                         <th>Nombre</th>
                                         <th>Tipo</th>
                                         <th>Descripción</th>
-                                        <th>Grupo</th>
                                         <th>Coords X/Y</th>
                                         <th style="width: 120px;">Acciones</th>
                                     </tr>
@@ -695,13 +701,6 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Coordenada Y</label>
                             <input type="number" step="any" id="edit_y_impacto" autocomplete="off" required>
-                        </div>
-                        <div class="form-group" style="flex: 1.2;">
-                            <label>País UTM</label>
-                            <select id="utm_country_edit_impacto" class="form-control">
-                                <option value="ES">España (30N)</option>
-                                <option value="LV">Letonia (35V)</option>
-                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -773,15 +772,9 @@
                         <label>Nombre / Identificador</label>
                         <input type="text" id="edit_nombre_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Clase (Tipo)</label>
-                            <input type="text" id="edit_tipo_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
-                        </div>
-                        <div class="form-group">
-                            <label>Batería / Grupo</label>
-                            <select id="edit_id_grupo_arma" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
-                        </div>
+                    <div class="form-group">
+                        <label>Clase (Tipo)</label>
+                        <input type="text" id="edit_tipo_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
                     </div>
                     <div class="form-row" style="align-items: stretch; gap: 0.5rem;">
                         <div class="form-group" style="flex: 1;">
@@ -791,13 +784,6 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Coordenada Y</label>
                             <input type="number" step="any" id="edit_y_arma" autocomplete="off" required>
-                        </div>
-                        <div class="form-group" style="flex: 1.2;">
-                            <label>País UTM</label>
-                            <select id="utm_country_edit_arma" class="form-control">
-                                <option value="ES">España (30N)</option>
-                                <option value="LV">Letonia (35V)</option>
-                            </select>
                         </div>
                     </div>
                     <div class="form-group">

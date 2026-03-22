@@ -2,12 +2,55 @@ import DataTable from 'datatables.net-dt';
 import 'datatables.net-dt/css/dataTables.dataTables.css'; // Estilos base de DT
 import proj4 from 'proj4';
 
-const UTM_ZONES = {
-    'ES': "+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
-    'LV': "+proj=utm +zone=35 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-};
 
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- CARGAR CONFIGURACIÓN MAPA ---
+    let configMapaGlobal = null;
+    async function cargarConfiguracionMapa() {
+        try {
+            const response = await fetch('/api/config_mapa');
+            const data = await response.json();
+            if (data && data.length > 0) {
+                configMapaGlobal = data[0];
+            }
+        } catch (error) {
+            console.error("Error cargando configuración mapa:", error);
+        }
+    }
+    await cargarConfiguracionMapa();
+
+    function formatCoords(x, y) {
+        if (!x || !y) return "N/A";
+        if (configMapaGlobal && configMapaGlobal.sistemaCoordenadas === "UTM") {
+            const huso = configMapaGlobal.huso || "30";
+            const hemisferio = configMapaGlobal.hemisferio === 1 || configMapaGlobal.hemisferio === true ? 'N' : 'S';
+            
+            const utmProj = `+proj=utm +zone=${huso} +${hemisferio === 'N' ? 'north' : 'south'} +ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
+            const geoProj = "+proj=longlat +datum=WGS84 +no_defs";
+
+            try {
+                // proj4 convierte [Lon, Lat] a [E, N]
+                const [easting, northing] = proj4(geoProj, utmProj, [parseFloat(y), parseFloat(x)]);
+                return `${Math.round(easting)} / ${Math.round(northing)} (UTM ${huso}${hemisferio})`;
+            } catch (e) {
+                console.error(e);
+                return `${x} / ${y}`; 
+            }
+        }
+        return `${parseFloat(x).toFixed(5)} / ${parseFloat(y).toFixed(5)}`; 
+    }
+
+    function formatCoordsDom(text) {
+        if (!text) return "N/A";
+        const parts = text.split('/');
+        if (parts.length < 2) return text;
+        const x = parseFloat(parts[0].trim());
+        const y = parseFloat(parts[1].trim());
+        if (isNaN(x) || isNaN(y)) return text;
+        return formatCoords(x, y);
+    }
+
     // ----------------------------------------
     // 1. INICIALIZAR DATATABLE
     // ----------------------------------------
@@ -19,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
         paging: false,       
         info: false,         
         columnDefs: [
-            { orderable: false, targets: 7 } 
+            { orderable: false, targets: 7 },
+            { targets: 3, render: function(data) { return formatCoordsDom(data); } }
         ],
         language: {
             "emptyTable": "No hay datos disponibles",
@@ -41,8 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { data: 'nombre' },
             { data: 'tipo' },
             { data: 'descripcion', defaultContent: '' },
-            { data: 'grupo' },
-            { data: null, render: function(row) { return `${row.x} / ${row.y}`; } },
+            { data: null, render: function(row) { return formatCoords(row.cord_x || row.x, row.cord_y || row.y); } },
             { data: null, render: function(row) {
                 const desc = row.descripcion ? row.descripcion.replace(/"/g, '&quot;') : '';
                 return `<div class="td-actions">
@@ -51,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 data-nombre="${row.nombre}" 
                                 data-tipo="${row.tipo}" 
                                 data-descripcion="${desc}" 
-                                data-id_grupo="${row.id_grupo}" 
                                 data-x="${row.x}" 
                                 data-y="${row.y}">Editar</button>
                             <button class="btn btn-danger btn-delete-arma-modal" data-id="${row.id}">Borrar</button>
@@ -84,6 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (filterEficacia) {
                 filterEficacia.style.display = value === 'armas' ? 'none' : 'block';
             }
+            const filterTipo = document.getElementById('filter-tipo');
+            if (filterTipo) {
+                filterTipo.style.display = value === 'armas' ? 'block' : 'none';
+            }
         });
     });
 
@@ -104,10 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('edit_x_arma').value = btnEdit.getAttribute('data-x');
             document.getElementById('edit_y_arma').value = btnEdit.getAttribute('data-y');
 
-            const idGrupo = btnEdit.getAttribute('data-id_grupo');
-            const selectGrupo = document.getElementById('edit_id_grupo_arma');
-            if (selectGrupo) selectGrupo.value = idGrupo || "";
-
             modalEditArma.classList.remove('hidden');
         }
 
@@ -119,12 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Cargar select grupos en edit de arma
-    setTimeout(() => {
-        if (typeof cargarSelectsEdit === 'function') {
-            cargarSelectsEdit('#edit_id_grupo_arma', '/api/grupos');
-        }
-    }, 500);
+
 
     // Cerrar Modales Arma
     document.getElementById('closeModalEditArma')?.addEventListener('click', () => modalEditArma.classList.add('hidden'));
@@ -142,9 +179,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let yObj = parseFloat(document.getElementById('edit_y_arma').value);
 
         if (Math.abs(xObj) > 180 || Math.abs(yObj) > 180) {
+            if (!configMapaGlobal) {
+                alert("Esperando configuración del mapa de la base de datos...");
+                return;
+            }
             try {
-                const countryCode = document.getElementById('utm_country_edit_arma')?.value || 'ES';
-                const epsg = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                const huso = configMapaGlobal.huso || '30';
+                const hemisferio = configMapaGlobal.hemisferio == 1 || configMapaGlobal.hemisferio === true ? '' : '+south ';
+                const epsg = `+proj=utm +zone=${huso} ${hemisferio}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
+
                 const [lon, lat] = proj4(epsg, "EPSG:4326", [xObj, yObj]);
                 xObj = lat;
                 yObj = lon;
@@ -158,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
             nombre: document.getElementById('edit_nombre_arma').value,
             tipo: document.getElementById('edit_tipo_arma').value,
             descripcion: document.getElementById('edit_descripcion_arma').value,
-            id_grupo: document.getElementById('edit_id_grupo_arma').value,
             cord_x: xObj,
             cord_y: yObj
         };
@@ -204,6 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
             table.column(5).search('').draw();
         } else {
             table.column(5).search(val, false, false).draw();
+        }
+    });
+
+    document.getElementById('filter-tipo')?.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === "") {
+            tableArmas.column(2).search('').draw(); // Columna 2: Tipo
+        } else {
+            tableArmas.column(2).search(val, false, false).draw();
         }
     });
 
@@ -370,9 +421,15 @@ document.addEventListener('DOMContentLoaded', () => {
             let yImp = parseFloat(editYImpacto.value);
 
             if (Math.abs(xImp) > 180 || Math.abs(yImp) > 180) {
+                if (!configMapaGlobal) {
+                    alert("Esperando configuración del mapa de la base de datos...");
+                    return;
+                }
                 try {
-                    const countryCode = document.getElementById('utm_country_edit_impacto')?.value || 'ES';
-                    const epsg = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                    const huso = configMapaGlobal.huso || '30';
+                    const hemisferio = configMapaGlobal.hemisferio == 1 || configMapaGlobal.hemisferio === true ? '' : '+south ';
+                    const epsg = `+proj=utm +zone=${huso} ${hemisferio}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`;
+
                     const [lon, lat] = proj4(epsg, "EPSG:4326", [xImp, yImp]);
                     xImp = lat;
                     yImp = lon;

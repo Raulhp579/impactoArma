@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('grupos', function (Blueprint $table) {
+        Schema::create('config_mapa', function (Blueprint $table) {
             $table->id();
-            $table->string("nombre");
-            $table->string("descripcion");
+            $table->string("huso");
+            $table->string("sistemaCoordenadas");
+            $table->boolean("hemisferio");
+            $table->string("prefijo_nombre_boca");
+            $table->integer("numero_boca_inicial");
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('grupos');
+        Schema::dropIfExists('config_mapa');
     }
 };

@@ -34,9 +34,11 @@
         border: 1px solid var(--border);
         border-radius: 20px;
         width: 100%;
-        max-width: 520px;
+        max-width: 580px;
         position: relative;
-        overflow: hidden;
+        max-height: 85vh;
+        overflow-y: auto;
+        overflow-x: hidden;
         box-shadow: 0 40px 100px rgba(0,0,0,0.8);
         font-family: 'Syne', sans-serif; /* Para mantener diseño */
     }
@@ -148,6 +150,27 @@
     #addModal .btn-success:hover { opacity: 0.9; transform: translateY(-1px); }
 
     #addModal .hidden { display: none !important; }
+    .btn-clase {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+        font-size: 0.85rem;
+    }
+    .btn-clase:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .btn-clase.active {
+        background: var(--accent) !important;
+        border-color: var(--accent) !important;
+        color: white !important;
+    }
 </style>
 
 <!-- MODAL ESTRUCTURA -->
@@ -165,13 +188,13 @@
                 <!-- PASO 1: SELECCIÓN -->
                 <div class="step-container">
                     <div class="selection-grid">
+                        <div class="type-card" onclick="setTipo('arma')" id="card-arma">
+                            <div class="card-emoji">🛡️</div>
+                            <span>BOCA</span>
+                        </div>
                         <div class="type-card active" onclick="setTipo('impacto')" id="card-impacto">
                             <div class="card-emoji">💥</div>
                             <span>IMPACTO</span>
-                        </div>
-                        <div class="type-card" onclick="setTipo('arma')" id="card-arma">
-                            <div class="card-emoji">🛡️</div>
-                            <span>ARMAMENTO</span>
                         </div>
                     </div>
                     <input type="hidden" id="val-tipo" value="impacto">
@@ -184,15 +207,9 @@
 
                 <!-- PASO 2: COORDENADAS -->
                 <div class="step-container">
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label>Sistema de Coordenadas</label>
-                        <select class="form-control" id="val-coord-type" onchange="updateCoordLabels()">
-                            <option value="geo">Geográficas (Lat/Lon)</option>
-                            <option value="utm">UTM</option>
-                        </select>
-                    </div>
 
-                    <div class="grid-3">
+
+                    <div class="grid-2">
                         <div class="form-group">
                             <label id="lbl-x">Latitud (X)</label>
                             <input type="number" step="any" class="form-control" id="val-x" placeholder="00.0000">
@@ -200,13 +217,6 @@
                         <div class="form-group">
                             <label id="lbl-y">Longitud (Y)</label>
                             <input type="number" step="any" class="form-control" id="val-y" placeholder="00.0000">
-                        </div>
-                        <div class="form-group">
-                            <label>País UTM</label>
-                            <select class="form-control" id="utm_country_modal">
-                                <option value="ES">España (30N)</option>
-                                <option value="LV">Letonia (35V)</option>
-                            </select>
                         </div>
                     </div>
                     <div class="footer-actions">
@@ -219,27 +229,19 @@
                 <div class="step-container">
                     
                     <!-- CAMPOS IMPACTO -->
-                    <div id="extra-impacto">
-                        <div class="form-group">
-                            <label>Fecha y Hora</label>
-                            <input type="datetime-local" class="form-control" id="val-momento">
-                        </div>
-                        <div class="grid-2">
+                        <div id="extra-impacto">
                             <div class="form-group">
-                                <label>Área Asignada</label>
-                                <select class="form-control" id="val-area">
-                                    <option value="">Cargando áreas...</option>
-                                </select>
+                                <label>Fecha y Hora</label>
+                                <input type="datetime-local" class="form-control" id="val-momento">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" style="margin-top: 15px;">
                                 <label>Objetivo</label>
                                 <select class="form-control" id="val-objetivo">
-                                    <option value="">Selecciona un área...</option>
+                                    <option value="">Cargando objetivos...</option>
                                 </select>
                             </div>
-                        </div>
                         <div class="form-group" style="margin-top: 15px;">
-                            <label>Arma Utilizada</label>
+                            <label>Boca de fuego</label>
                             <select class="form-control" id="val-arma">
                                 <option value="">Cargando armas...</option>
                             </select>
@@ -249,23 +251,17 @@
                     <!-- CAMPOS ARMA -->
                     <div id="extra-arma" class="hidden">
                         <div class="form-group">
-                            <label>Identificador / Nombre</label>
-                            <input type="text" class="form-control" id="val-nombre" placeholder="Nombre del sistema">
-                        </div>
-                        <div class="form-group">
                             <label>Descripción</label>
                             <textarea class="form-control" id="val-descripcion" rows="2" placeholder="Breve descripción..."></textarea>
                         </div>
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>Clase (Tipo)</label>
-                                <input type="text" class="form-control" id="val-clase" placeholder="Ej. Artillería">
-                            </div>
-                            <div class="form-group">
-                                <label>Batería / Grupo</label>
-                                <select class="form-control" id="val-grupo">
-                                    <option value="">Cargando grupos...</option>
-                                </select>
+                        <div class="form-group">
+                            <label>Clase (Tipo)</label>
+                            <input type="hidden" id="val-clase">
+                            <div class="clase-buttons" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                                <button type="button" class="btn-clase" data-value="Ligera">Ligera</button>
+                                <button type="button" class="btn-clase" data-value="Pesada">Pesada</button>
+                                <button type="button" class="btn-clase" data-value="Mortero">Mortero</button>
+                                <button type="button" class="btn-clase" data-value="Lanzacohete">Lanzacohete</button>
                             </div>
                         </div>
                     </div>
