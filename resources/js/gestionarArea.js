@@ -1,3 +1,9 @@
+import proj4 from 'proj4';
+const UTM_ZONES = {
+    'ES': "+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+    'LV': "+proj=utm +zone=35 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------
     // ELEMENTOS MODAL CREAR/EDITAR
@@ -84,12 +90,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnAnyadirVertice) {
         btnAnyadirVertice.addEventListener("click", () => {
-            const x = parseFloat(inputVerticeX.value);
-            const y = parseFloat(inputVerticeY.value);
+            let x = parseFloat(inputVerticeX.value);
+            let y = parseFloat(inputVerticeY.value);
             
             if (isNaN(x) || isNaN(y)) {
                 alert("Introduce coordenadas X e Y válidas para el vértice.");
                 return;
+            }
+
+            // Auto-detectar UTM (si los valores son mayores a 180)
+            if (Math.abs(x) > 180 || Math.abs(y) > 180) {
+                try {
+                    const countryCode = document.getElementById('utm_country_vertices')?.value || 'ES';
+                    const EPSG_STRING = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                    const [lon, lat] = proj4(EPSG_STRING, "EPSG:4326", [x, y]);
+                    x = lat;
+                    y = lon;
+                } catch(e) {
+                    alert("Error convirtiendo UTM: " + e.message);
+                    return;
+                }
             }
 
             tempVertices.push({ x: x, y: y });
@@ -121,6 +141,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------
     // MOSTRAR/OCULTAR MODAL CREAR/EDITAR
     // ----------------------------------------
+
+    const btnFabNuevaArea = document.getElementById("btnFabNuevaArea");
+
+    function abrirModalNuevaArea() {
+        modalAreaTitle.textContent = "Añadir Nueva Área";
+        inputAreaId.value = "";
+        inputAreaNombre.value = "";
+        tempVertices = [];
+        renderVertices();
+        modalArea.classList.remove("hidden");
+    }
+
+    if (btnCrearArea) {
+        btnCrearArea.addEventListener("click", abrirModalNuevaArea);
+    }
+
+    if (btnFabNuevaArea) {
+        btnFabNuevaArea.addEventListener("click", abrirModalNuevaArea);
+    }
 
     if (closeModalArea) {
         closeModalArea.addEventListener("click", () => {
@@ -293,11 +332,28 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const idArea = inputObjAreaId.value;
             const inputNombre = document.getElementById("new_obj_nombre");
+            
+            let xObj = parseFloat(inputNewObjX.value);
+            let yObj = parseFloat(inputNewObjY.value);
+
+            if (Math.abs(xObj) > 180 || Math.abs(yObj) > 180) {
+                try {
+                    const countryCode = document.getElementById('utm_country_objetivos')?.value || 'ES';
+                    const EPSG_STRING = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                    const [lon, lat] = proj4(EPSG_STRING, "EPSG:4326", [xObj, yObj]);
+                    xObj = lat;
+                    yObj = lon;
+                } catch(e) {
+                    alert("Error convirtiendo UTM: " + e.message);
+                    return;
+                }
+            }
+
             const datos = {
                 id_area: idArea,
                 nombre: inputNombre ? inputNombre.value : "",
-                x_zona: parseFloat(inputNewObjX.value),
-                y_zona: parseFloat(inputNewObjY.value)
+                x_zona: xObj,
+                y_zona: yObj
             };
 
             try {

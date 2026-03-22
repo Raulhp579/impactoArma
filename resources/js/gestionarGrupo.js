@@ -173,10 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Vincular Botón Flotante FAB
-    const fabAdd = document.getElementById("añadir");
-    if (fabAdd && btnCrearArea) {
-        fabAdd.addEventListener("click", () => btnCrearArea.click());
-    }
+
 
 });

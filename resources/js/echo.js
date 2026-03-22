@@ -13,4 +13,9 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
 });
 
+window.Pusher.logToConsole = true;
 
+window.Echo.channel("impacto-fallido")
+    .listen('.impacto-fallido', (data)=>{
+        alert("¡Alerta! Impacto Fallido");
+    });

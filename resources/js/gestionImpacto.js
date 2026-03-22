@@ -1,5 +1,11 @@
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-dt/css/dataTables.dataTables.css'; // Estilos base de DT
+import proj4 from 'proj4';
+
+const UTM_ZONES = {
+    'ES': "+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+    'LV': "+proj=utm +zone=35 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------
@@ -131,13 +137,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('form-edit-arma')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('edit_arma_id').value;
+        
+        let xObj = parseFloat(document.getElementById('edit_x_arma').value);
+        let yObj = parseFloat(document.getElementById('edit_y_arma').value);
+
+        if (Math.abs(xObj) > 180 || Math.abs(yObj) > 180) {
+            try {
+                const countryCode = document.getElementById('utm_country_edit_arma')?.value || 'ES';
+                const epsg = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                const [lon, lat] = proj4(epsg, "EPSG:4326", [xObj, yObj]);
+                xObj = lat;
+                yObj = lon;
+            } catch(er) {
+                alert("Error convirtiendo UTM: " + er.message);
+                return;
+            }
+        }
+
         const datos = {
             nombre: document.getElementById('edit_nombre_arma').value,
             tipo: document.getElementById('edit_tipo_arma').value,
             descripcion: document.getElementById('edit_descripcion_arma').value,
             id_grupo: document.getElementById('edit_id_grupo_arma').value,
-            cord_x: document.getElementById('edit_x_arma').value,
-            cord_y: document.getElementById('edit_y_arma').value
+            cord_x: xObj,
+            cord_y: yObj
         };
 
         try {
@@ -343,9 +366,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = editImpactoId.value;
             if (!id) return;
 
+            let xImp = parseFloat(editXImpacto.value);
+            let yImp = parseFloat(editYImpacto.value);
+
+            if (Math.abs(xImp) > 180 || Math.abs(yImp) > 180) {
+                try {
+                    const countryCode = document.getElementById('utm_country_edit_impacto')?.value || 'ES';
+                    const epsg = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+                    const [lon, lat] = proj4(epsg, "EPSG:4326", [xImp, yImp]);
+                    xImp = lat;
+                    yImp = lon;
+                } catch(er) {
+                    alert("Error convirtiendo UTM: " + er.message);
+                    return;
+                }
+            }
+
             const datos = {
-                x_impacto: editXImpacto.value,
-                y_impacto: editYImpacto.value,
+                x_impacto: xImp,
+                y_impacto: yImp,
                 momento_impacto: editMomentoImpacto.value,
                 id_area: editIdArea.value,           
                 id_objetivo: document.getElementById('edit_id_objetivo')?.value || null, // <--- Nuevo

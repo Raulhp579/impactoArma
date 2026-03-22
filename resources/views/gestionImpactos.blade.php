@@ -687,14 +687,21 @@
             <div class="modal-body">
                 <form id="form-edit-impacto" class="custom-form">
                     <input type="hidden" id="edit_impacto_id" name="id">
-                    <div class="form-row">
-                        <div class="form-group">
+                    <div class="form-row" style="align-items: stretch; gap: 0.5rem;">
+                        <div class="form-group" style="flex: 1;">
                             <label>Coordenada X</label>
                             <input type="number" step="any" id="edit_x_impacto" autocomplete="off" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <label>Coordenada Y</label>
                             <input type="number" step="any" id="edit_y_impacto" autocomplete="off" required>
+                        </div>
+                        <div class="form-group" style="flex: 1.2;">
+                            <label>País UTM</label>
+                            <select id="utm_country_edit_impacto" class="form-control">
+                                <option value="ES">España (30N)</option>
+                                <option value="LV">Letonia (35V)</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -776,14 +783,21 @@
                             <select id="edit_id_grupo_arma" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;"></select>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
+                    <div class="form-row" style="align-items: stretch; gap: 0.5rem;">
+                        <div class="form-group" style="flex: 1;">
                             <label>Coordenada X</label>
-                            <input type="number" step="any" id="edit_x_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                            <input type="number" step="any" id="edit_x_arma" autocomplete="off" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <label>Coordenada Y</label>
-                            <input type="number" step="any" id="edit_y_arma" autocomplete="off" required style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 8px; outline: none;">
+                            <input type="number" step="any" id="edit_y_arma" autocomplete="off" required>
+                        </div>
+                        <div class="form-group" style="flex: 1.2;">
+                            <label>País UTM</label>
+                            <select id="utm_country_edit_arma" class="form-control">
+                                <option value="ES">España (30N)</option>
+                                <option value="LV">Letonia (35V)</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -828,5 +842,6 @@
     @vite('resources/js/gestionImpacto.js')
     @vite('resources/js/modal.js')
     @vite('resources/js/settings.js')
+    @vite('resources/js/echo.js')
 </body>
 </html>

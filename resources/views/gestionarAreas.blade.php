@@ -492,18 +492,56 @@
             font-weight: 500;
             color: var(--text-muted);
         }
-        .form-group input, .form-group textarea, .form-group select {
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="datetime-local"],
+        .form-group textarea {
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border-color);
             color: white;
-            padding: 0.75rem;
+            padding: 0.85rem;
             border-radius: 8px;
             font-family: inherit;
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .form-group select {
+            background-color: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 0.85rem;
+            padding-right: 2.5rem;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s, background 0.2s;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
+            background-size: 1.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            background-color: rgba(255, 255, 255, 0.09);
         }
         .form-group select option {
-            background: #1a1a1a;
+            background: #1f2227;
             color: white;
+            padding: 0.85rem;
+            font-size: 0.95rem;
         }
         .checkbox-group {
             flex-direction: row;
@@ -675,14 +713,20 @@
                     
                     <div class="form-group" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
                         <label>Vértices del Polígono (<span id="countVertices">0</span>)</label>
-                        <div class="form-row" style="margin-bottom: 0.5rem; align-items: flex-end;">
-                            <div class="form-group" style="margin-bottom: 0;">
+                        <div class="form-row" style="margin-bottom: 0.5rem; align-items: stretch; gap: 0.5rem;">
+                            <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                 <input type="number" step="any" id="vertice_x" placeholder="Coord X" autocomplete="off" style="font-size: 0.85rem;">
                             </div>
-                            <div class="form-group" style="margin-bottom: 0;">
+                            <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                 <input type="number" step="any" id="vertice_y" placeholder="Coord Y" autocomplete="off" style="font-size: 0.85rem;">
                             </div>
-                            <button type="button" id="btnAnyadirVertice" class="btn" style="height: 40px; min-width: 40px; display: flex; align-items: center; justify-content: center; padding: 0; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            <div class="form-group" style="margin-bottom: 0; flex: 1.2;">
+                                <select id="utm_country_vertices" class="form-control" style="font-size: 0.85rem;">
+                                    <option value="ES">España (30N)</option>
+                                    <option value="LV">Letonia (35V)</option>
+                                </select>
+                            </div>
+                            <button type="button" id="btnAnyadirVertice" class="btn" style="min-width: 44px; display: flex; align-items: center; justify-content: center; padding: 0; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; align-self: stretch;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                             </button>
                         </div>
@@ -738,14 +782,21 @@
                         <label>Nombre del Objetivo</label>
                         <input type="text" id="new_obj_nombre" required placeholder="Ej. Búnker, Silo..." autocomplete="off">
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
+                    <div class="form-row" style="margin-top: 0.5rem; align-items: stretch;">
+                        <div class="form-group" style="flex: 1;">
                             <label>Coordenada X</label>
                             <input type="number" step="any" id="new_obj_x" required placeholder="0.00">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <label>Coordenada Y</label>
                             <input type="number" step="any" id="new_obj_y" required placeholder="0.00">
+                        </div>
+                        <div class="form-group" style="flex: 1.2;">
+                            <label>País UTM</label>
+                            <select id="utm_country_objetivos" class="form-control">
+                                <option value="ES">España (30N)</option>
+                                <option value="LV">Letonia (35V)</option>
+                            </select>
                         </div>
                     </div>
                     <button type="submit" class="btn-submit">Guardar Objetivo</button>
@@ -806,5 +857,6 @@
     @vite('resources/js/gestionarGrupo.js')
     @vite('resources/js/modal.js')
     @vite('resources/js/settings.js')
+    @vite('resources/js/echo.js')
 </body>
 </html>

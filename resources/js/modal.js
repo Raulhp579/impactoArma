@@ -1,3 +1,10 @@
+import proj4 from 'proj4';
+
+const UTM_ZONES = {
+    'ES': "+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+    'LV': "+proj=utm +zone=35 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // ============================================
     // DOM ELEMENTS - MODAL
@@ -8,7 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Abrir modal
     if (btnAnyadir && modal) {
-        btnAnyadir.addEventListener("click", () => {
+        btnAnyadir.addEventListener("click", (e) => {
+            e.preventDefault()
             currentStep = 0;
             updateModalView();
             modal.classList.remove("hidden");
@@ -73,6 +81,30 @@ document.addEventListener('DOMContentLoaded', () => {
             cardArma.classList.toggle('active', tipo === 'arma');
         }
         updateModalView();
+    }
+
+    window.updateCoordLabels = function() {
+        const type = document.getElementById('val-coord-type')?.value || 'geo';
+        const lblX = document.getElementById('lbl-x');
+        const lblY = document.getElementById('lbl-y');
+        const inpX = document.getElementById('val-x');
+        const inpY = document.getElementById('val-y');
+
+        console.log("updateCoordLabels called. Type:", type, "Labels found:", !!lblX, !!lblY);
+
+        if (lblX && lblY) {
+            if (type === 'utm') {
+                lblX.textContent = "Easting / X";
+                lblY.textContent = "Northing / Y";
+                if (inpX) inpX.placeholder = "348000";
+                if (inpY) inpY.placeholder = "4474000";
+            } else {
+                lblX.textContent = "Latitud (X)";
+                lblY.textContent = "Longitud (Y)";
+                if (inpX) inpX.placeholder = "00.0000";
+                if (inpY) inpY.placeholder = "00.0000";
+            }
+        }
     }
 
     // ============================================
@@ -143,14 +175,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================
     window.finalizar = async function() {
         const tipo = document.getElementById('val-tipo').value;
-        const x = document.getElementById('val-x').value;
-        const y = document.getElementById('val-y').value;
+        let x = document.getElementById('val-x').value;
+        let y = document.getElementById('val-y').value;
+        const coordType = document.getElementById('val-coord-type')?.value || 'geo';
 
         if (!x || !y) {
             alert("Las coordenadas son obligatorias.");
             return;
         }
 
+        // Conversión UTM -> Geográficas si es necesario (por dropdown o auto-detección de valores altos)
+        if (coordType === 'utm' || Math.abs(x) > 180 || Math.abs(y) > 180) {
+            try {
+                const easting = parseFloat(x);
+                const northing = parseFloat(y);
+                if (isNaN(easting) || isNaN(northing)) throw new Error("Coordenadas no numéricas");
+
+                // Obtener el EPSG string basado en el país seleccionado
+                const countryCode = document.getElementById('utm_country_modal')?.value || 'ES';
+                const EPSG_STRING = UTM_ZONES[countryCode] || UTM_ZONES['ES'];
+
+                // Proj4 espera [X, Y] (Easting, Northing)
+                // Devuelve [Lon, Lat]
+                const [lon, lat] = proj4(EPSG_STRING, "EPSG:4326", [easting, northing]);
+                
+                x = lat; // Latitud (X en backend)
+                y = lon; // Longitud (Y en backend)
+                console.log(`UTM Convertido: [${easting}, ${northing}] -> [${lat}, ${lon}]`);
+            } catch (e) {
+                console.error("Error Proj4 UTM:", e);
+                alert("Error en coordenadas UTM: " + e.message);
+                return;
+            }
+        }
+
+        console.log("Datos a enviar:", { x, y, coordType });
         let datos = {};
         let endpoint = '';
 
@@ -205,8 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 if (modal) modal.classList.add('hidden');
-                alert(tipo === 'impacto' ? "Impacto guardado exitosamente." : "Armamento guardado exitosamente.");
-                window.location.reload();
+                window.location.reload()
             } else {
                 const errorData = await response.json();
                 alert("Error: " + (errorData.message || response.statusText));

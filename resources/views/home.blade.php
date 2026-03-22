@@ -493,6 +493,273 @@
             cursor: pointer;
             width: 16px; height: 16px; /* Caja más grande */
         }
+        /* RIGHT SIDEBAR */
+        .sidebar-right {
+            width: 320px;
+            background-color: var(--surface);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-right-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sidebar-right-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .sidebar-search {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.5rem 0.75rem;
+            transition: border-color 0.2s;
+        }
+
+        .sidebar-search:focus-within {
+            border-color: var(--primary);
+        }
+
+        .sidebar-search input {
+            background: transparent;
+            border: none;
+            color: white;
+            flex: 1;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .search-btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0;
+            display: flex;
+            cursor: pointer;
+        }
+
+        .sidebar-right-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .sidebar-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-view.hidden {
+            display: none !important;
+            opacity: 0;
+        }
+
+        /* Areas List */
+        .areas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .area-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: flex-start; /* Ajustado para checkbox */
+            align-items: center;
+        }
+
+        .area-card-checkbox {
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .area-toggle-chk {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .area-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .area-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .area-card-name {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .area-card-stats {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .badge-count {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        /* Detail View */
+        .btn-back {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover {
+            color: var(--text-main);
+        }
+
+        .btn-back svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .area-title {
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            color: var(--text-main);
+        }
+
+        .stats-summary {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .detail-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-section h4 {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .detail-item-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .detail-item-title {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .detail-item-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .detail-item-status {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .status-efectivo {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-fallido {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -592,6 +859,64 @@
             </button>
             
         </main>
+
+        <!-- SIDEBAR DERECHA: FILTRO ÁREAS -->
+        <aside class="sidebar-right" id="sidebar-right">
+            <div class="sidebar-right-header">
+                <h3>Impacto por Áreas</h3>
+                <div class="sidebar-search">
+                    <input type="text" id="area-search" placeholder="Buscar área..." autocomplete="off">
+                    <button class="search-btn-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-right-content">
+                <!-- VISTA 1: LISTA DE ÁREAS -->
+                <div id="areas-list-view" class="sidebar-view">
+                    <div class="areas-list" id="areas-items-container">
+                        <!-- Items dinámicos -->
+                    </div>
+                </div>
+
+                <!-- VISTA 2: DETALLE DEL ÁREA (Impactos / Armas) -->
+                <div id="area-detail-view" class="sidebar-view hidden">
+                    <button class="btn-back" id="btn-back-sidebar">
+                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                        <span>Volver</span>
+                    </button>
+                    
+                    <h2 id="detail-area-name" class="area-title">Nombre del Área</h2>
+                    
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <span class="stat-label">Impactos</span>
+                            <span class="stat-value" id="stat-impacts">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Eficacia Media</span>
+                            <span class="stat-value" id="stat-eficacia">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Impactos Recientes</h4>
+                        <div id="detail-impactos" class="item-list">
+                            <!-- Items dinámicos -->
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Armas Utilizadas</h4>
+                        <div id="detail-armas" class="item-list">
+                            <!-- Items dinámicos -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
     </div>
 
     @include('components.add-modal')
@@ -599,5 +924,6 @@
     @vite('resources/js/mapa.js')
     @vite('resources/js/modal.js')
     @vite('resources/js/settings.js')
+    @vite('resources/js/app.js')
 </body>
 </html>

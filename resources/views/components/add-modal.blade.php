@@ -34,7 +34,7 @@
         border: 1px solid var(--border);
         border-radius: 20px;
         width: 100%;
-        max-width: 440px;
+        max-width: 520px;
         position: relative;
         overflow: hidden;
         box-shadow: 0 40px 100px rgba(0,0,0,0.8);
@@ -108,9 +108,25 @@
         color: var(--text); font-family: inherit; font-size: 14px;
         outline: none; transition: 0.2s;
     }
+    #addModal select.form-control {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        padding-right: 36px;
+        cursor: pointer;
+    }
+    #addModal select.form-control option {    
+        background: #1f2227;
+        color: white;
+    }
     #addModal .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); }
 
     #addModal .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    #addModal .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 12px; }
 
     /* Navigation Buttons */
     #addModal .footer-actions {
@@ -168,14 +184,29 @@
 
                 <!-- PASO 2: COORDENADAS -->
                 <div class="step-container">
-                    <div class="grid-2">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Sistema de Coordenadas</label>
+                        <select class="form-control" id="val-coord-type" onchange="updateCoordLabels()">
+                            <option value="geo">Geográficas (Lat/Lon)</option>
+                            <option value="utm">UTM</option>
+                        </select>
+                    </div>
+
+                    <div class="grid-3">
                         <div class="form-group">
-                            <label>Latitud (X)</label>
+                            <label id="lbl-x">Latitud (X)</label>
                             <input type="number" step="any" class="form-control" id="val-x" placeholder="00.0000">
                         </div>
                         <div class="form-group">
-                            <label>Longitud (Y)</label>
+                            <label id="lbl-y">Longitud (Y)</label>
                             <input type="number" step="any" class="form-control" id="val-y" placeholder="00.0000">
+                        </div>
+                        <div class="form-group">
+                            <label>País UTM</label>
+                            <select class="form-control" id="utm_country_modal">
+                                <option value="ES">España (30N)</option>
+                                <option value="LV">Letonia (35V)</option>
+                            </select>
                         </div>
                     </div>
                     <div class="footer-actions">

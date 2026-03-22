@@ -41,6 +41,37 @@ class ImpactoController extends Controller
     }
 
     /**
+     * Display a listing of the resource with full details.
+     */
+    public function conDetalles()
+    {
+        try{
+            $impactos = Impacto::with(['area', 'arma'])->get();
+            $impactos_formateados = $impactos->map(function($impacto){
+                return [
+                    "id" => $impacto->id,
+                    "x_impacto" => $impacto->x_impacto,
+                    "y_impacto" => $impacto->y_impacto,
+                    "momento_impacto" => $impacto->momento_impacto,
+                    "efectivo" => (bool) $impacto->efectivo,
+                    "eficacia" => $impacto->eficacia,
+                    "id_area" => $impacto->id_area,
+                    "area" => $impacto->area ? $impacto->area->nombre : null,
+                    "id_arma" => $impacto->id_arma,
+                    "arma" => $impacto->arma ? $impacto->arma->nombre : null,
+                    "id_objetivo" => $impacto->id_objetivo
+                ];
+            });
+            return response()->json($impactos_formateados);
+        }catch(Exception $e){
+            return response()->json([
+                "message" => "Error al obtener los impactos con detalles",
+                "error" => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
